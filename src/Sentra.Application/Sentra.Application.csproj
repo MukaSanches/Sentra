@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Sentra.Application</RootNamespace>
+    <AssemblyName>Sentra.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Sentra.Domain\Sentra.Domain.csproj" />
+    <ProjectReference Include="..\Sentra.Contracts\Sentra.Contracts.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">SENTRA</title>
+  <rect width="256" height="256" rx="52" fill="#102235"/>
+  <path d="M70 58h116v32H102v22h66c18 0 32 14 32 32v24c0 18-14 32-32 32H70v-32h98v-24H102c-18 0-32-14-32-32V58z" fill="#F4F6F7"/>
+  <path d="M112 90h32v78h-32z" fill="#2E7D5B"/>
+</svg>

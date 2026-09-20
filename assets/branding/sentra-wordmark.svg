@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" role="img" aria-labelledby="title">
+  <title id="title">SENTRA</title>
+  <rect width="160" height="160" x="10" y="10" rx="34" fill="#102235"/>
+  <path d="M48 44h84v24H72v16h48c14 0 24 10 24 24v14c0 14-10 24-24 24H48v-24h72v-18H72c-14 0-24-10-24-24V44z" fill="#F4F6F7"/>
+  <path d="M79 68h24v54H79z" fill="#2E7D5B"/>
+  <text x="205" y="105" font-family="Segoe UI, Arial, sans-serif" font-size="74" font-weight="600" fill="#18222C">SENTRA</text>
+  <text x="209" y="138" font-family="Segoe UI, Arial, sans-serif" font-size="21" fill="#56616C">Central Inteligente de Portaria</text>
+</svg>

@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Color x:Key="SentraNavy">#102235</Color>
+  <Color x:Key="SentraGraphite">#18222C</Color>
+  <Color x:Key="SentraSurface">#F4F6F7</Color>
+  <Color x:Key="SentraGreen">#2E7D5B</Color>
+  <Color x:Key="SentraAmber">#A86F13</Color>
+  <Color x:Key="SentraRed">#A53A3A</Color>
+  <SolidColorBrush x:Key="SentraNavyBrush" Color="{StaticResource SentraNavy}"/>
+  <SolidColorBrush x:Key="SentraGraphiteBrush" Color="{StaticResource SentraGraphite}"/>
+  <SolidColorBrush x:Key="SentraSurfaceBrush" Color="{StaticResource SentraSurface}"/>
+  <SolidColorBrush x:Key="SentraGreenBrush" Color="{StaticResource SentraGreen}"/>
+  <SolidColorBrush x:Key="SentraAmberBrush" Color="{StaticResource SentraAmber}"/>
+  <SolidColorBrush x:Key="SentraRedBrush" Color="{StaticResource SentraRed}"/>
+</ResourceDictionary>

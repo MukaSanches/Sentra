@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <Authors>Samuel Sanches</Authors>
+    <Company>Samuel Sanches</Company>
+    <Product>SENTRA — Central Inteligente de Portaria</Product>
+    <Description>Central Inteligente de Portaria</Description>
+    <Copyright>© 2026 Samuel Sanches. Todos os direitos reservados.</Copyright>
+    <RepositoryUrl>https://github.com/MukaSanches/Sentra</RepositoryUrl>
+  </PropertyGroup>
+</Project>
