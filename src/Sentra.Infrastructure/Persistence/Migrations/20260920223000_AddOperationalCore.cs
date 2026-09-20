@@ -251,20 +251,17 @@ public partial class AddOperationalCore : Migration
         migrationBuilder.CreateIndex("ux_resident_units_active_link", "resident_units", new[] { "resident_id", "unit_id" }, unique: true, filter: """ "ends_at" IS NULL """);
         migrationBuilder.CreateIndex("ux_resident_units_primary", "resident_units", "resident_id", unique: true, filter: """ "is_primary" = TRUE AND "ends_at" IS NULL """);
 
-        var seededAt = new DateTimeOffset(2026, 9, 20, 0, 0, 0, TimeSpan.Zero);
-        migrationBuilder.InsertData(
-            table: "permissions",
-            columns: new[] { "id", "created_at", "updated_at", "code", "description" },
-            values: new object[,]
-            {
-                { Guid.Parse("10000000-0000-0000-0000-000000000001"), seededAt, seededAt, "condominium.read", "Consultar configuração do condomínio" },
-                { Guid.Parse("10000000-0000-0000-0000-000000000002"), seededAt, seededAt, "condominium.write", "Alterar configuração do condomínio" },
-                { Guid.Parse("10000000-0000-0000-0000-000000000003"), seededAt, seededAt, "residents.read", "Consultar moradores e unidades" },
-                { Guid.Parse("10000000-0000-0000-0000-000000000004"), seededAt, seededAt, "residents.write", "Cadastrar e alterar moradores e vínculos" },
-                { Guid.Parse("10000000-0000-0000-0000-000000000005"), seededAt, seededAt, "employees.read", "Consultar funcionários" },
-                { Guid.Parse("10000000-0000-0000-0000-000000000006"), seededAt, seededAt, "employees.manage", "Gerenciar funcionários" },
-                { Guid.Parse("10000000-0000-0000-0000-000000000007"), seededAt, seededAt, "roles.manage", "Gerenciar papéis e permissões" }
-            });
+        migrationBuilder.Sql(
+            """
+            INSERT INTO permissions (id, created_at, updated_at, code, description) VALUES
+            ('10000000-0000-0000-0000-000000000001', TIMESTAMPTZ '2026-09-20 00:00:00+00', TIMESTAMPTZ '2026-09-20 00:00:00+00', 'condominium.read', 'Consultar configuração do condomínio'),
+            ('10000000-0000-0000-0000-000000000002', TIMESTAMPTZ '2026-09-20 00:00:00+00', TIMESTAMPTZ '2026-09-20 00:00:00+00', 'condominium.write', 'Alterar configuração do condomínio'),
+            ('10000000-0000-0000-0000-000000000003', TIMESTAMPTZ '2026-09-20 00:00:00+00', TIMESTAMPTZ '2026-09-20 00:00:00+00', 'residents.read', 'Consultar moradores e unidades'),
+            ('10000000-0000-0000-0000-000000000004', TIMESTAMPTZ '2026-09-20 00:00:00+00', TIMESTAMPTZ '2026-09-20 00:00:00+00', 'residents.write', 'Cadastrar e alterar moradores e vínculos'),
+            ('10000000-0000-0000-0000-000000000005', TIMESTAMPTZ '2026-09-20 00:00:00+00', TIMESTAMPTZ '2026-09-20 00:00:00+00', 'employees.read', 'Consultar funcionários'),
+            ('10000000-0000-0000-0000-000000000006', TIMESTAMPTZ '2026-09-20 00:00:00+00', TIMESTAMPTZ '2026-09-20 00:00:00+00', 'employees.manage', 'Gerenciar funcionários'),
+            ('10000000-0000-0000-0000-000000000007', TIMESTAMPTZ '2026-09-20 00:00:00+00', TIMESTAMPTZ '2026-09-20 00:00:00+00', 'roles.manage', 'Gerenciar papéis e permissões');
+            """);
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)
