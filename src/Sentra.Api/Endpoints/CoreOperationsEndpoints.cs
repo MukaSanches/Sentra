@@ -65,10 +65,11 @@ public static class CoreOperationsEndpoints
                 {
                     await db.SaveChangesAsync(cancellationToken);
                 }
-                catch (DbUpdateException)
+                catch (DbUpdateException exception)
+                    when (PostgresErrorClassifier.IsUniqueViolation(exception))
                 {
                     return Results.Conflict(
-                        new { error = "Já existe um bloco com este nome ou os dados são conflitantes." });
+                        new { error = "Já existe um bloco com este nome." });
                 }
 
                 return Results.Created(
@@ -118,7 +119,8 @@ public static class CoreOperationsEndpoints
                 {
                     await db.SaveChangesAsync(cancellationToken);
                 }
-                catch (DbUpdateException)
+                catch (DbUpdateException exception)
+                    when (PostgresErrorClassifier.IsUniqueViolation(exception))
                 {
                     return Results.Conflict(
                         new { error = "Já existe uma unidade com este identificador." });
