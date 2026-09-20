@@ -1,0 +1,55 @@
+name: M2 Migration Generate
+
+on:
+  push:
+    branches:
+      - "feature/v1.0.0-m2-whatsapp"
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: "!contains(github.event.head_commit.message, '[m2-migration]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      DATABASE_CONNECTION_STRING: Host=localhost;Database=sentra_m2_generate;Username=sentra;Password=sentra
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - run: dotnet restore Sentra.sln
+      - run: dotnet build Sentra.sln --configuration Release --no-restore
+      - run: dotnet tool install --global dotnet-ef --version 10.0.12
+
+      - name: Generate migration
+        run: dotnet ef migrations add AddWhatsAppCloudApi --project src/Sentra.Infrastructure --startup-project src/Sentra.Api --output-dir Persistence/Migrations --configuration Release --no-build
+
+      - name: Validate generated scope
+        shell: bash
+        run: |
+          migration_file="$(find src/Sentra.Infrastructure/Persistence/Migrations -maxdepth 1 -type f -name '*_AddWhatsAppCloudApi.cs' ! -name '*.Designer.cs' | head -n 1)"
+          test -n "$migration_file"
+          test "$(grep -c 'migrationBuilder.CreateTable' "$migration_file")" -eq 5
+          grep -q 'name: "whatsapp_integrations"' "$migration_file"
+          grep -q 'name: "whatsapp_conversations"' "$migration_file"
+          grep -q 'name: "whatsapp_messages"' "$migration_file"
+          grep -q 'name: "whatsapp_attachments"' "$migration_file"
+          grep -q 'name: "whatsapp_webhook_events"' "$migration_file"
+          test "$(grep -c 'migrationBuilder.DropTable' "$migration_file")" -eq 5
+
+      - name: Commit generated migration
+        shell: bash
+        run: |
+          git config user.name "SENTRA CI"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/Sentra.Infrastructure/Persistence/Migrations
+          git commit -m "feat(m2): generate WhatsApp EF migration [m2-migration]"
+          git push origin HEAD:feature/v1.0.0-m2-whatsapp
