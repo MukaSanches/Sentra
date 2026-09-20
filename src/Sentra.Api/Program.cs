@@ -103,6 +103,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 
 app.MapHub<OperationsHub>("/hubs/operations");
 app.MapOperationalEndpoints();
+app.MapWhatsAppEndpoints();
 
 app.Run();
 
