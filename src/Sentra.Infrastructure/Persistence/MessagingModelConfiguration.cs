@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Sentra.Domain.Condominiums;
 using Sentra.Domain.Conversations;
 using Sentra.Domain.Integrations;
+using Sentra.Domain.Residents;
 
 namespace Sentra.Infrastructure.Persistence;
 
@@ -28,6 +30,10 @@ internal static class MessagingModelConfiguration
             entity.HasIndex(x => new { x.Kind, x.ExternalResourceId })
                 .IsUnique()
                 .HasDatabaseName("ux_integrations_kind_external_resource");
+            entity.HasOne<Condominium>()
+                .WithMany()
+                .HasForeignKey(x => x.CondominiumId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<WebhookEvent>(entity =>
@@ -74,6 +80,18 @@ internal static class MessagingModelConfiguration
                 .HasDatabaseName("ux_conversations_channel_participant");
             entity.HasIndex(x => new { x.CondominiumId, x.LastMessageAt })
                 .HasDatabaseName("ix_conversations_condominium_last_message");
+            entity.HasOne<Condominium>()
+                .WithMany()
+                .HasForeignKey(x => x.CondominiumId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Resident>()
+                .WithMany()
+                .HasForeignKey(x => x.ResidentId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne<Unit>()
+                .WithMany()
+                .HasForeignKey(x => x.UnitId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<ConversationParticipant>(entity =>
