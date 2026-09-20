@@ -27,11 +27,17 @@ public sealed class WhatsAppWebhookEvent : EntityBase
     public int Attempts { get; private set; }
     public string? LastError { get; private set; }
     public DateTimeOffset? ProcessedAt { get; private set; }
+    public DateTimeOffset? NextAttemptAt { get; private set; }
+
+    public bool IsReady(DateTimeOffset now)
+        => ProcessingStatus == WebhookProcessingStatus.Pending
+            && (!NextAttemptAt.HasValue || NextAttemptAt.Value <= now);
 
     public void MarkProcessing(DateTimeOffset timestamp)
     {
         ProcessingStatus = WebhookProcessingStatus.Processing;
         Attempts++;
+        NextAttemptAt = null;
         MarkUpdated(timestamp);
     }
 
@@ -40,19 +46,32 @@ public sealed class WhatsAppWebhookEvent : EntityBase
         ProcessingStatus = WebhookProcessingStatus.Processed;
         ProcessedAt = timestamp;
         LastError = null;
+        NextAttemptAt = null;
         MarkUpdated(timestamp);
     }
 
-    public void MarkFailed(string error, DateTimeOffset timestamp)
+    public void ScheduleRetry(string error, DateTimeOffset timestamp)
     {
-        ProcessingStatus = WebhookProcessingStatus.Failed;
         LastError = Guard.Optional(error, nameof(error), 2000);
+        if (Attempts >= 5)
+        {
+            ProcessingStatus = WebhookProcessingStatus.Failed;
+            NextAttemptAt = null;
+        }
+        else
+        {
+            ProcessingStatus = WebhookProcessingStatus.Pending;
+            var delaySeconds = Math.Min(300, 5 * (int)Math.Pow(2, Math.Max(0, Attempts - 1)));
+            NextAttemptAt = timestamp.AddSeconds(delaySeconds);
+        }
         MarkUpdated(timestamp);
     }
 
     public void Retry(DateTimeOffset timestamp)
     {
         ProcessingStatus = WebhookProcessingStatus.Pending;
+        LastError = null;
+        NextAttemptAt = timestamp;
         MarkUpdated(timestamp);
     }
 }

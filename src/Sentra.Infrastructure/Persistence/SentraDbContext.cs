@@ -5,6 +5,7 @@ using Sentra.Domain.Auditing;
 using Sentra.Domain.Common;
 using Sentra.Domain.Properties;
 using Sentra.Domain.Residents;
+using Sentra.Domain.WhatsApp;
 
 namespace Sentra.Infrastructure.Persistence;
 
@@ -22,6 +23,11 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<EmployeeRole> EmployeeRoles => Set<EmployeeRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<WhatsAppIntegration> WhatsAppIntegrations => Set<WhatsAppIntegration>();
+    public DbSet<WhatsAppConversation> WhatsAppConversations => Set<WhatsAppConversation>();
+    public DbSet<WhatsAppMessage> WhatsAppMessages => Set<WhatsAppMessage>();
+    public DbSet<WhatsAppAttachment> WhatsAppAttachments => Set<WhatsAppAttachment>();
+    public DbSet<WhatsAppWebhookEvent> WhatsAppWebhookEvents => Set<WhatsAppWebhookEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,6 +45,7 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
         ConfigurePermission(modelBuilder.Entity<Permission>());
         ConfigureEmployeeRole(modelBuilder.Entity<EmployeeRole>());
         ConfigureRolePermission(modelBuilder.Entity<RolePermission>());
+        WhatsAppModelConfiguration.Configure(modelBuilder);
     }
 
     private static void ConfigureAuditEvent(EntityTypeBuilder<AuditEvent> entity)
