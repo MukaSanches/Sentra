@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Sentra.Domain</AssemblyName>
+    <RootNamespace>Sentra.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>

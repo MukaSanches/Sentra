@@ -1,0 +1,17 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+*.cache
+*.log
+TestResults/
+artifacts/
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+*.pfx
+*.p12
+*.snk
