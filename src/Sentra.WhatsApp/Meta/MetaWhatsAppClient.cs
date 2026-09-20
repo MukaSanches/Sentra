@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using Sentra.Application.Integrations.WhatsApp;
 using Sentra.Domain.Residents;
@@ -19,7 +20,7 @@ public sealed class MetaWhatsAppClient(
         using var request = CreateRequest(
             HttpMethod.Get,
             settings,
-            $"{settings.GraphVersion}/{settings.PhoneNumberId}");
+            $"{settings.GraphVersion}/{settings.PhoneNumberId}?fields=id,verified_name,display_phone_number,quality_rating");
 
         using var response =
             await httpClient.SendAsync(request, cancellationToken);
@@ -205,15 +206,15 @@ public sealed class MetaWhatsAppClient(
     }
 
     private sealed record PhoneInfoPayload(
-        string? Id,
-        string? VerifiedName,
-        string? DisplayPhoneNumber,
-        string? QualityRating);
+        [property: JsonPropertyName("id")] string? Id,
+        [property: JsonPropertyName("verified_name")] string? VerifiedName,
+        [property: JsonPropertyName("display_phone_number")] string? DisplayPhoneNumber,
+        [property: JsonPropertyName("quality_rating")] string? QualityRating);
 
     private sealed record MediaInfoPayload(
-        string? Id,
-        string? Url,
-        string? MimeType,
-        string? Sha256,
-        long? FileSize);
+        [property: JsonPropertyName("id")] string? Id,
+        [property: JsonPropertyName("url")] string? Url,
+        [property: JsonPropertyName("mime_type")] string? MimeType,
+        [property: JsonPropertyName("sha256")] string? Sha256,
+        [property: JsonPropertyName("file_size")] long? FileSize);
 }
