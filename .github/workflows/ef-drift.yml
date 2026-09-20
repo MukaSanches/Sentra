@@ -1,0 +1,35 @@
+name: EF Drift Diagnostic
+
+on:
+  push:
+    branches:
+      - "feature/v1.0.0-m1-operations"
+
+permissions:
+  contents: read
+
+jobs:
+  ef-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_CONNECTION_STRING: Host=localhost;Database=sentra_diagnostic;Username=sentra;Password=sentra
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - run: dotnet restore Sentra.sln
+
+      - run: dotnet build Sentra.sln --configuration Release --no-restore
+
+      - run: dotnet tool install --global dotnet-ef --version 10.0.12
+
+      - name: Generate exact EF model drift
+        run: dotnet ef migrations add M1ModelSync --project src/Sentra.Infrastructure --startup-project src/Sentra.Api --output-dir Persistence/Migrations --configuration Release --no-build
+
+      - name: Print generated migration and snapshot diff
+        run: git diff -- src/Sentra.Infrastructure/Persistence/Migrations
