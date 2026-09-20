@@ -2,6 +2,8 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using Sentra.Api.Endpoints;
+using Sentra.Application.Security;
 using Sentra.Application.System;
 using Sentra.Infrastructure;
 
@@ -36,22 +38,16 @@ var connectionString =
     builder.Configuration.GetConnectionString("Sentra") ??
     builder.Configuration["DATABASE_CONNECTION_STRING"];
 
-if (!string.IsNullOrWhiteSpace(connectionString))
+var databaseConfigured = !string.IsNullOrWhiteSpace(connectionString);
+
+if (databaseConfigured)
 {
-    builder.Services.AddSentraInfrastructure(connectionString);
+    builder.Services.AddSentraInfrastructure(connectionString!);
 }
 
-var issuer =
-    builder.Configuration["Sentra:Auth:Issuer"] ??
-    builder.Configuration["SENTRA_AUTH_ISSUER"];
-
-var audience =
-    builder.Configuration["Sentra:Auth:Audience"] ??
-    builder.Configuration["SENTRA_AUTH_AUDIENCE"];
-
-var signingKey =
-    builder.Configuration["Sentra:Auth:SigningKey"] ??
-    builder.Configuration["SENTRA_AUTH_SIGNING_KEY"];
+var issuer = builder.Configuration["Sentra:Auth:Issuer"] ?? builder.Configuration["SENTRA_AUTH_ISSUER"];
+var audience = builder.Configuration["Sentra:Auth:Audience"] ?? builder.Configuration["SENTRA_AUTH_AUDIENCE"];
+var signingKey = builder.Configuration["Sentra:Auth:SigningKey"] ?? builder.Configuration["SENTRA_AUTH_SIGNING_KEY"];
 
 var authenticationConfigured =
     !string.IsNullOrWhiteSpace(issuer) &&
@@ -83,7 +79,13 @@ else
     builder.Services.AddAuthentication();
 }
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in PermissionCatalog.All)
+    {
+        options.AddPolicy(permission.Code, policy => policy.RequireClaim("permission", permission.Code));
+    }
+});
 
 var app = builder.Build();
 
@@ -104,9 +106,20 @@ app.MapGet("/api/system/status", () =>
     new SystemStatus(
         Product: "SENTRA — Central Inteligente de Portaria",
         Version: "1.0.0-dev",
-        DatabaseConfigured: !string.IsNullOrWhiteSpace(connectionString),
+        DatabaseConfigured: databaseConfigured,
         AuthenticationConfigured: authenticationConfigured))
     .AllowAnonymous();
+
+if (databaseConfigured)
+{
+    app.MapSentraSetupEndpoints();
+    app.MapSentraAuthEndpoints(authenticationConfigured);
+
+    if (authenticationConfigured)
+    {
+        app.MapSentraCoreOperationsEndpoints();
+    }
+}
 
 app.Run();
 
