@@ -39,9 +39,14 @@ jobs:
       - name: Print generated artifacts
         shell: bash
         run: |
-          echo "===SENTRA_MIGRATION_BEGIN==="
-          find src/Sentra.Infrastructure/Persistence/Migrations/Probe -maxdepth 1 -type f -name '*_WhatsAppCore.cs' -print -exec cat {} \;
-          echo "===SENTRA_MIGRATION_END==="
+          MAIN=$(find src/Sentra.Infrastructure/Persistence/Migrations/Probe -maxdepth 1 -type f -name '*_WhatsAppCore.cs' ! -name '*.Designer.cs' | head -1)
+          DESIGNER=$(find src/Sentra.Infrastructure/Persistence/Migrations/Probe -maxdepth 1 -type f -name '*_WhatsAppCore.Designer.cs' | head -1)
+          echo "===SENTRA_MIGRATION_MAIN_BEGIN==="
+          cat "$MAIN"
+          echo "===SENTRA_MIGRATION_MAIN_END==="
+          echo "===SENTRA_MIGRATION_DESIGNER_BEGIN==="
+          cat "$DESIGNER"
+          echo "===SENTRA_MIGRATION_DESIGNER_END==="
           echo "===SENTRA_SNAPSHOT_BEGIN==="
           cat src/Sentra.Infrastructure/Persistence/Migrations/SentraDbContextModelSnapshot.cs
           echo "===SENTRA_SNAPSHOT_END==="
