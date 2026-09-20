@@ -11,6 +11,8 @@ public static class PermissionCatalog
     public const string ResidentsManage = "residents.manage";
     public const string EmployeesRead = "employees.read";
     public const string EmployeesManage = "employees.manage";
+    public const string ConversationsRead = "conversations.read";
+    public const string ConversationsManage = "conversations.manage";
     public const string VisitorsRead = "visitors.read";
     public const string VisitorsManage = "visitors.manage";
     public const string PackagesRead = "packages.read";
@@ -31,6 +33,8 @@ public static class PermissionCatalog
         new(ResidentsManage, "Cadastrar e alterar moradores."),
         new(EmployeesRead, "Consultar usuários internos."),
         new(EmployeesManage, "Gerenciar usuários e perfis."),
+        new(ConversationsRead, "Consultar conversas operacionais."),
+        new(ConversationsManage, "Enviar mensagens e operar conversas."),
         new(VisitorsRead, "Consultar visitantes e autorizações."),
         new(VisitorsManage, "Gerenciar visitantes e autorizações."),
         new(PackagesRead, "Consultar encomendas."),
