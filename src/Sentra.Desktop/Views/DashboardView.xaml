@@ -1,0 +1,89 @@
+<UserControl x:Class="Sentra.Desktop.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel>
+      <Grid Margin="0,0,0,18">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="Central operacional" FontSize="26" FontWeight="SemiBold"
+                     Foreground="{StaticResource SentraGraphiteBrush}"/>
+          <TextBlock Text="Visão do núcleo M1 validada contra o backend SENTRA."
+                     Margin="0,6,0,0" Foreground="#596671"/>
+        </StackPanel>
+        <Button Grid.Column="1" Style="{StaticResource SentraButton}"
+                Content="Atualizar" Command="{Binding RefreshCommand}"/>
+      </Grid>
+
+      <UniformGrid Columns="3" Margin="0,0,0,8">
+        <Border Style="{StaticResource SentraCard}">
+          <StackPanel>
+            <TextBlock Text="Servidor" FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding ServerStatus}" FontSize="18" Margin="0,8,0,0"/>
+          </StackPanel>
+        </Border>
+        <Border Style="{StaticResource SentraCard}">
+          <StackPanel>
+            <TextBlock Text="Sessão" FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding SessionStatus}" FontSize="18" Margin="0,8,0,0" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+        <Border Style="{StaticResource SentraCard}">
+          <StackPanel>
+            <TextBlock Text="Estado operacional" FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding OperationalStatus}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Border>
+      </UniformGrid>
+
+      <UniformGrid Columns="3" Margin="0,0,0,8">
+        <Border Style="{StaticResource SentraCard}">
+          <StackPanel>
+            <TextBlock Text="Blocos" Foreground="#596671"/>
+            <TextBlock Text="{Binding BlocksCount, TargetNullValue=—}" FontSize="30" FontWeight="SemiBold"/>
+          </StackPanel>
+        </Border>
+        <Border Style="{StaticResource SentraCard}">
+          <StackPanel>
+            <TextBlock Text="Unidades" Foreground="#596671"/>
+            <TextBlock Text="{Binding UnitsCount, TargetNullValue=—}" FontSize="30" FontWeight="SemiBold"/>
+          </StackPanel>
+        </Border>
+        <Border Style="{StaticResource SentraCard}">
+          <StackPanel>
+            <TextBlock Text="Moradores" Foreground="#596671"/>
+            <TextBlock Text="{Binding ResidentsCount, TargetNullValue=—}" FontSize="30" FontWeight="SemiBold"/>
+          </StackPanel>
+        </Border>
+      </UniformGrid>
+
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Style="{StaticResource SentraCard}">
+          <StackPanel>
+            <TextBlock Text="WhatsApp oficial" FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding WhatsAppStatus}" Margin="0,8,0,0"
+                       Foreground="{StaticResource SentraAmberBrush}"/>
+            <TextBlock Text="A integração Meta Cloud API será implementada e validada no M2."
+                       Margin="0,8,0,0" TextWrapping="Wrap" Foreground="#596671"/>
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="1" Style="{StaticResource SentraCard}">
+          <StackPanel>
+            <TextBlock Text="Entendimento de mensagens" FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding IntelligenceStatus}" Margin="0,8,0,0"
+                       Foreground="{StaticResource SentraAmberBrush}"/>
+            <TextBlock Text="Structured output, policy engine e contexto entram no M3."
+                       Margin="0,8,0,0" TextWrapping="Wrap" Foreground="#596671"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

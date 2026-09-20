@@ -1,0 +1,51 @@
+<UserControl x:Class="Sentra.Desktop.Views.ResidentsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0" Margin="0,0,0,14">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition Width="280"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel>
+        <TextBlock Text="Moradores" FontSize="26" FontWeight="SemiBold"/>
+        <TextBlock Text="Pesquisa e cadastro sem coleta obrigatória de documento."
+                   Foreground="#596671" Margin="0,5,0,0"/>
+      </StackPanel>
+      <TextBox Grid.Column="1" Style="{StaticResource SentraTextBox}"
+               ToolTip="Pesquisar nome" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
+      <Button Grid.Column="2" Style="{StaticResource SentraButton}" Content="Pesquisar" Command="{Binding LoadCommand}"/>
+    </Grid>
+
+    <Border Grid.Row="1" Style="{StaticResource SentraCard}">
+      <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock Text="Nome completo" FontWeight="SemiBold" Margin="4,0"/>
+          <TextBox Style="{StaticResource SentraTextBox}"
+                   Text="{Binding NewFullName, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        <Button Grid.Column="1" VerticalAlignment="Bottom" Style="{StaticResource SentraButton}"
+                Content="Cadastrar morador" Command="{Binding CreateCommand}"/>
+      </Grid>
+    </Border>
+
+    <DataGrid Grid.Row="2" ItemsSource="{Binding Items}" IsReadOnly="True">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Nome" Binding="{Binding FullName}" Width="*"/>
+        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="290"/>
+        <DataGridCheckBoxColumn Header="Ativo" Binding="{Binding IsActive}" Width="90"/>
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <TextBlock Grid.Row="3" Margin="4,12,4,0" Text="{Binding Status}" Foreground="#596671"/>
+  </Grid>
+</UserControl>

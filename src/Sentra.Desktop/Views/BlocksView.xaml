@@ -1,0 +1,51 @@
+<UserControl x:Class="Sentra.Desktop.Views.BlocksView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0" Margin="0,0,0,14">
+      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <StackPanel>
+        <TextBlock Text="Blocos" FontSize="26" FontWeight="SemiBold"/>
+        <TextBlock Text="Cadastro estrutural do condomínio." Foreground="#596671" Margin="0,5,0,0"/>
+      </StackPanel>
+      <Button Grid.Column="1" Style="{StaticResource SentraButton}" Content="Recarregar" Command="{Binding LoadCommand}"/>
+    </Grid>
+
+    <Border Grid.Row="1" Style="{StaticResource SentraCard}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="2*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0">
+          <TextBlock Text="Nome do bloco" FontWeight="SemiBold" Margin="4,0"/>
+          <TextBox Style="{StaticResource SentraTextBox}" Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1">
+          <TextBlock Text="Código opcional" FontWeight="SemiBold" Margin="4,0"/>
+          <TextBox Style="{StaticResource SentraTextBox}" Text="{Binding NewCode, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        <Button Grid.Column="2" VerticalAlignment="Bottom" Style="{StaticResource SentraButton}"
+                Content="Cadastrar bloco" Command="{Binding CreateCommand}"/>
+      </Grid>
+    </Border>
+
+    <DataGrid Grid.Row="2" ItemsSource="{Binding Items}" IsReadOnly="True">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="*"/>
+        <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="160"/>
+        <DataGridCheckBoxColumn Header="Ativo" Binding="{Binding IsActive}" Width="90"/>
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <TextBlock Grid.Row="3" Margin="4,12,4,0" Text="{Binding Status}" Foreground="#596671"/>
+  </Grid>
+</UserControl>

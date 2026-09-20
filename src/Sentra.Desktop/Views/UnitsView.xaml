@@ -1,0 +1,59 @@
+<UserControl x:Class="Sentra.Desktop.Views.UnitsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0" Margin="0,0,0,14">
+      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <StackPanel>
+        <TextBlock Text="Unidades" FontSize="26" FontWeight="SemiBold"/>
+        <TextBlock Text="Apartamentos, casas ou unidades operacionais vinculadas aos blocos."
+                   Foreground="#596671" Margin="0,5,0,0"/>
+      </StackPanel>
+      <Button Grid.Column="1" Style="{StaticResource SentraButton}" Content="Recarregar" Command="{Binding LoadCommand}"/>
+    </Grid>
+
+    <Border Grid.Row="1" Style="{StaticResource SentraCard}">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="2*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0">
+          <TextBlock Text="Bloco" FontWeight="SemiBold" Margin="4,0"/>
+          <ComboBox Style="{StaticResource SentraComboBox}" ItemsSource="{Binding Blocks}"
+                    SelectedItem="{Binding SelectedBlock}" DisplayMemberPath="Name"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1">
+          <TextBlock Text="Número" FontWeight="SemiBold" Margin="4,0"/>
+          <TextBox Style="{StaticResource SentraTextBox}" Text="{Binding NewNumber, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Text="Andar opcional" FontWeight="SemiBold" Margin="4,0"/>
+          <TextBox Style="{StaticResource SentraTextBox}" Text="{Binding NewFloor, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        <Button Grid.Column="3" VerticalAlignment="Bottom" Style="{StaticResource SentraButton}"
+                Content="Cadastrar unidade" Command="{Binding CreateCommand}"/>
+      </Grid>
+    </Border>
+
+    <DataGrid Grid.Row="2" ItemsSource="{Binding Items}" IsReadOnly="True">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Número" Binding="{Binding Number}" Width="*"/>
+        <DataGridTextColumn Header="Andar" Binding="{Binding Floor}" Width="150"/>
+        <DataGridTextColumn Header="Bloco ID" Binding="{Binding BlockId}" Width="270"/>
+        <DataGridCheckBoxColumn Header="Ativa" Binding="{Binding IsActive}" Width="90"/>
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <TextBlock Grid.Row="3" Margin="4,12,4,0" Text="{Binding Status}" Foreground="#596671"/>
+  </Grid>
+</UserControl>
