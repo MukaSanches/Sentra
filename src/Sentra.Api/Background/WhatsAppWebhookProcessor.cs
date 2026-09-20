@@ -258,41 +258,44 @@ public sealed class WhatsAppWebhookProcessor(
             return;
         }
 
-        ResidentPhone? residentPhone = null;
-        Resident? resident = null;
-        Guid? unitId = null;
+        string e164;
 
         try
         {
-            var e164 = ResidentPhone.NormalizeE164(
+            e164 = ResidentPhone.NormalizeE164(
                 "+" + incoming.FromWaId.TrimStart('+'));
+        }
+        catch (ArgumentException exception)
+        {
+            throw new WhatsAppProcessingException(
+                "invalid_sender",
+                exception);
+        }
 
-            residentPhone = await db.ResidentPhones.SingleOrDefaultAsync(
+        var residentPhone = await db.ResidentPhones.SingleOrDefaultAsync(
+            item =>
+                item.E164 == e164 &&
+                item.WhatsAppEnabled,
+            cancellationToken);
+
+        Resident? resident = null;
+        Guid? unitId = null;
+
+        if (residentPhone is not null)
+        {
+            resident = await db.Residents.SingleOrDefaultAsync(
                 item =>
-                    item.E164 == e164 &&
-                    item.WhatsAppEnabled,
+                    item.Id == residentPhone.ResidentId &&
+                    item.IsActive,
                 cancellationToken);
 
-            if (residentPhone is not null)
-            {
-                resident = await db.Residents.SingleOrDefaultAsync(
-                    item =>
-                        item.Id == residentPhone.ResidentId &&
-                        item.IsActive,
-                    cancellationToken);
-
-                unitId = await db.ResidentUnits
-                    .Where(item =>
-                        item.ResidentId == residentPhone.ResidentId &&
-                        item.EndsAt == null)
-                    .OrderByDescending(item => item.IsPrimary)
-                    .Select(item => (Guid?)item.UnitId)
-                    .FirstOrDefaultAsync(cancellationToken);
-            }
-        }
-        catch (ArgumentException)
-        {
-            residentPhone = null;
+            unitId = await db.ResidentUnits
+                .Where(item =>
+                    item.ResidentId == residentPhone.ResidentId &&
+                    item.EndsAt == null)
+                .OrderByDescending(item => item.IsPrimary)
+                .Select(item => (Guid?)item.UnitId)
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
         var conversation = await db.Conversations.SingleOrDefaultAsync(

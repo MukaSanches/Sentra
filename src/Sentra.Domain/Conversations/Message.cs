@@ -31,7 +31,8 @@ public enum MessageDeliveryStatus
     Sent = 4,
     Delivered = 5,
     Read = 6,
-    Failed = 7
+    Failed = 7,
+    Uncertain = 8
 }
 
 public sealed class Message : EntityBase
@@ -177,6 +178,21 @@ public sealed class Message : EntityBase
         MarkUpdated(timestamp);
     }
 
+    public void MarkSendUncertain(
+        string errorCode,
+        DateTimeOffset timestamp)
+    {
+        if (!CanTransition(DeliveryStatus, MessageDeliveryStatus.Uncertain))
+        {
+            return;
+        }
+
+        DeliveryStatus = MessageDeliveryStatus.Uncertain;
+        DeliveryStatusAt = timestamp;
+        LastErrorCode = Required(errorCode, nameof(errorCode), 96);
+        MarkUpdated(timestamp);
+    }
+
     private static bool CanTransition(
         MessageDeliveryStatus current,
         MessageDeliveryStatus next)
@@ -188,7 +204,8 @@ public sealed class Message : EntityBase
                 or MessageDeliveryStatus.Sent
                 or MessageDeliveryStatus.Delivered
                 or MessageDeliveryStatus.Read
-                or MessageDeliveryStatus.Failed,
+                or MessageDeliveryStatus.Failed
+                or MessageDeliveryStatus.Uncertain,
             MessageDeliveryStatus.Accepted => next is
                 MessageDeliveryStatus.Sent
                 or MessageDeliveryStatus.Delivered
@@ -199,6 +216,11 @@ public sealed class Message : EntityBase
                 or MessageDeliveryStatus.Read
                 or MessageDeliveryStatus.Failed,
             MessageDeliveryStatus.Delivered => next == MessageDeliveryStatus.Read,
+            MessageDeliveryStatus.Uncertain => next is
+                MessageDeliveryStatus.Sent
+                or MessageDeliveryStatus.Delivered
+                or MessageDeliveryStatus.Read
+                or MessageDeliveryStatus.Failed,
             MessageDeliveryStatus.Read => false,
             MessageDeliveryStatus.Failed => false,
             MessageDeliveryStatus.Received => false,

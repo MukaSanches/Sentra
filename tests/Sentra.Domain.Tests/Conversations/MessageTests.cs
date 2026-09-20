@@ -79,6 +79,26 @@ public sealed class MessageTests
     }
 
     [Fact]
+    public void Timeout_IsRecordedAsUncertainInsteadOfConfirmedFailure()
+    {
+        var occurredAt = DateTimeOffset.UtcNow;
+        var message = Message.CreateOutboundPending(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "Teste",
+            occurredAt);
+
+        message.MarkSendUncertain(
+            "meta_timeout",
+            occurredAt.AddSeconds(1));
+
+        Assert.Equal(
+            MessageDeliveryStatus.Uncertain,
+            message.DeliveryStatus);
+        Assert.Equal("meta_timeout", message.LastErrorCode);
+    }
+
+    [Fact]
     public void WebhookEvent_BecomesDeadLetterAtMaxAttempts()
     {
         var now = DateTimeOffset.UtcNow;

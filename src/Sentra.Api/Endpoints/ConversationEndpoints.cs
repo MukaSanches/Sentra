@@ -132,18 +132,28 @@ public static class ConversationEndpoints
                 new { error = "ClientRequestId e texto são obrigatórios." });
         }
 
-        var existingRequest = await (
-            from existingMessage in db.Messages.AsNoTracking()
-            join existingConversation in db.Conversations.AsNoTracking()
-                on existingMessage.ConversationId equals existingConversation.Id
-            where existingMessage.ClientRequestId == request.ClientRequestId
-                  && existingConversation.CondominiumId == condominiumId
-            select existingMessage)
-            .SingleOrDefaultAsync(cancellationToken);
+        if (request.Text.Length > 4096)
+        {
+            return Results.BadRequest(
+                new { error = "A mensagem excede 4096 caracteres." });
+        }
+
+        var existingRequest = await FindExistingRequestAsync(
+            condominiumId,
+            request.ClientRequestId,
+            db,
+            cancellationToken);
 
         if (existingRequest is not null)
         {
-            return Results.Ok(ToResponse(existingRequest));
+            return existingRequest.ConversationId == conversationId
+                ? Results.Ok(ToResponse(existingRequest))
+                : Results.Conflict(
+                    new
+                    {
+                        error =
+                            "ClientRequestId já foi usado em outra conversa deste condomínio."
+                    });
         }
 
         var conversation = await db.Conversations.SingleOrDefaultAsync(
@@ -179,7 +189,41 @@ public static class ConversationEndpoints
             now);
 
         db.Messages.Add(message);
-        await db.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception)
+            when (PostgresErrorClassifier.IsUniqueViolation(exception))
+        {
+            db.Entry(message).State = EntityState.Detached;
+
+            var concurrentRequest = await FindExistingRequestAsync(
+                condominiumId,
+                request.ClientRequestId,
+                db,
+                cancellationToken);
+
+            if (concurrentRequest is not null)
+            {
+                return concurrentRequest.ConversationId == conversationId
+                    ? Results.Ok(ToResponse(concurrentRequest))
+                    : Results.Conflict(
+                        new
+                        {
+                            error =
+                                "ClientRequestId já foi usado em outra conversa deste condomínio."
+                        });
+            }
+
+            return Results.Conflict(
+                new
+                {
+                    error =
+                        "ClientRequestId já está em uso. Gere uma nova chave de idempotência."
+                });
+        }
 
         try
         {
@@ -192,9 +236,6 @@ public static class ConversationEndpoints
             message.MarkAccepted(sent.MessageId, acceptedAt);
             conversation.RegisterMessage(acceptedAt);
 
-            // Persist the provider message id before reconciling statuses.
-            // If a status webhook raced ahead of this HTTP response, its
-            // durable status event can now be applied without losing state.
             await db.SaveChangesAsync(cancellationToken);
 
             var priorStatuses = await db.MessageStatusEvents
@@ -212,15 +253,12 @@ public static class ConversationEndpoints
             }
 
             db.AuditEvents.Add(
-                new AuditEvent(
-                    "conversation.whatsapp.message.sent",
-                    nameof(Message),
-                    message.Id.ToString(),
+                CreateSendAudit(
+                    user,
+                    httpContext,
+                    message,
                     "accepted",
-                    acceptedAt,
-                    user.FindFirstValue(ClaimTypes.NameIdentifier)
-                        ?? user.FindFirstValue("sub"),
-                    httpContext.Items["X-Correlation-ID"]?.ToString()));
+                    acceptedAt));
 
             await db.SaveChangesAsync(cancellationToken);
 
@@ -241,27 +279,93 @@ public static class ConversationEndpoints
         catch (OperationCanceledException)
             when (!cancellationToken.IsCancellationRequested)
         {
-            message.MarkSendFailure("meta_timeout", clock.UtcNow);
+            var uncertainAt = clock.UtcNow;
+            message.MarkSendUncertain("meta_timeout", uncertainAt);
+            db.AuditEvents.Add(
+                CreateSendAudit(
+                    user,
+                    httpContext,
+                    message,
+                    "uncertain",
+                    uncertainAt));
             await db.SaveChangesAsync(CancellationToken.None);
 
             return Results.Problem(
                 statusCode: StatusCodes.Status504GatewayTimeout,
                 title: "Envio não confirmado",
                 detail:
-                    "O SENTRA não repetirá automaticamente esta operação porque não pode confirmar se a Meta recebeu a mensagem.");
+                    "Não foi possível determinar se a Meta recebeu a mensagem. O SENTRA não repetirá automaticamente esta operação.");
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException exception)
         {
-            message.MarkSendFailure("meta_send_failed", clock.UtcNow);
+            var failureAt = clock.UtcNow;
+            var confirmedRejection = exception.StatusCode is not null;
+
+            if (confirmedRejection)
+            {
+                message.MarkSendFailure(
+                    $"meta_http_{(int)exception.StatusCode!.Value}",
+                    failureAt);
+            }
+            else
+            {
+                message.MarkSendUncertain(
+                    "meta_transport_uncertain",
+                    failureAt);
+            }
+
+            db.AuditEvents.Add(
+                CreateSendAudit(
+                    user,
+                    httpContext,
+                    message,
+                    confirmedRejection ? "failed" : "uncertain",
+                    failureAt));
+
             await db.SaveChangesAsync(CancellationToken.None);
 
             return Results.Problem(
-                statusCode: StatusCodes.Status502BadGateway,
-                title: "Envio não confirmado",
-                detail:
-                    "A API da Meta não confirmou o envio. O SENTRA não fará retry automático de uma operação não confirmada.");
+                statusCode: confirmedRejection
+                    ? StatusCodes.Status502BadGateway
+                    : StatusCodes.Status503ServiceUnavailable,
+                title: confirmedRejection
+                    ? "Envio rejeitado pela integração"
+                    : "Envio não confirmado",
+                detail: confirmedRejection
+                    ? "A API oficial da Meta rejeitou a solicitação."
+                    : "A conexão terminou sem confirmação. O SENTRA não repetirá automaticamente esta operação.");
         }
     }
+
+    private static Task<Message?> FindExistingRequestAsync(
+        Guid condominiumId,
+        Guid clientRequestId,
+        SentraDbContext db,
+        CancellationToken cancellationToken)
+        => (
+            from existingMessage in db.Messages.AsNoTracking()
+            join existingConversation in db.Conversations.AsNoTracking()
+                on existingMessage.ConversationId equals existingConversation.Id
+            where existingMessage.ClientRequestId == clientRequestId
+                  && existingConversation.CondominiumId == condominiumId
+            select existingMessage)
+            .SingleOrDefaultAsync(cancellationToken);
+
+    private static AuditEvent CreateSendAudit(
+        ClaimsPrincipal user,
+        HttpContext httpContext,
+        Message message,
+        string outcome,
+        DateTimeOffset timestamp)
+        => new(
+            "conversation.whatsapp.message.sent",
+            nameof(Message),
+            message.Id.ToString(),
+            outcome,
+            timestamp,
+            user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? user.FindFirstValue("sub"),
+            httpContext.Items["X-Correlation-ID"]?.ToString());
 
     private static ConversationMessageResponse ToResponse(Message item)
         => new(
