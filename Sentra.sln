@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentra.Domain.Tests", "test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentra.Api.Tests", "tests\Sentra.Api.Tests\Sentra.Api.Tests.csproj", "{54166E83-73CA-4B9F-9FCB-0F4EA81A94B7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentra.Desktop.Tests", "tests\Sentra.Desktop.Tests\Sentra.Desktop.Tests.csproj", "{7E29028B-CE64-467F-8DF2-61C6C5A77C47}"
+EndProject
 Global
   GlobalSection(SolutionConfigurationPlatforms) = preSolution
     Debug|Any CPU = Debug|Any CPU
@@ -56,5 +58,9 @@ Global
     {54166E83-73CA-4B9F-9FCB-0F4EA81A94B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
     {54166E83-73CA-4B9F-9FCB-0F4EA81A94B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
     {54166E83-73CA-4B9F-9FCB-0F4EA81A94B7}.Release|Any CPU.Build.0 = Release|Any CPU
+    {7E29028B-CE64-467F-8DF2-61C6C5A77C47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {7E29028B-CE64-467F-8DF2-61C6C5A77C47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {7E29028B-CE64-467F-8DF2-61C6C5A77C47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {7E29028B-CE64-467F-8DF2-61C6C5A77C47}.Release|Any CPU.Build.0 = Release|Any CPU
   EndGlobalSection
 EndGlobal
