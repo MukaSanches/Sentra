@@ -8,12 +8,19 @@ public sealed class Resident : AuditedEntityBase
     {
     }
 
-    public Resident(string fullName, string createdBy, DateTimeOffset? createdAt = null)
+    public Resident(
+        Guid condominiumId,
+        string fullName,
+        string createdBy,
+        DateTimeOffset? createdAt = null)
         : base(createdBy, createdAt)
     {
+        CondominiumId = Guard.RequiredId(condominiumId, nameof(condominiumId));
         FullName = Guard.Required(fullName, nameof(fullName), 160);
         IsActive = true;
     }
+
+    public Guid CondominiumId { get; private set; }
 
     public string FullName { get; private set; } = string.Empty;
 

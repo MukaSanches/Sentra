@@ -9,6 +9,7 @@ public sealed class ResidentPhone : AuditedEntityBase
     }
 
     public ResidentPhone(
+        Guid condominiumId,
         Guid residentId,
         string e164Number,
         bool isPrimary,
@@ -17,11 +18,14 @@ public sealed class ResidentPhone : AuditedEntityBase
         DateTimeOffset? createdAt = null)
         : base(createdBy, createdAt)
     {
+        CondominiumId = Guard.RequiredId(condominiumId, nameof(condominiumId));
         ResidentId = Guard.RequiredId(residentId, nameof(residentId));
         E164Number = NormalizeE164(e164Number);
         IsPrimary = isPrimary;
         IsWhatsAppEnabled = isWhatsAppEnabled;
     }
+
+    public Guid CondominiumId { get; private set; }
 
     public Guid ResidentId { get; private set; }
 

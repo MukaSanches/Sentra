@@ -9,6 +9,7 @@ public sealed class ResidentUnit : AuditedEntityBase
     }
 
     public ResidentUnit(
+        Guid condominiumId,
         Guid residentId,
         Guid unitId,
         ResidentUnitRole role,
@@ -18,6 +19,7 @@ public sealed class ResidentUnit : AuditedEntityBase
         DateTimeOffset? endsAt = null)
         : base(createdBy, startsAt)
     {
+        CondominiumId = Guard.RequiredId(condominiumId, nameof(condominiumId));
         ResidentId = Guard.RequiredId(residentId, nameof(residentId));
         UnitId = Guard.RequiredId(unitId, nameof(unitId));
 
@@ -36,6 +38,8 @@ public sealed class ResidentUnit : AuditedEntityBase
         StartsAt = startsAt;
         EndsAt = endsAt;
     }
+
+    public Guid CondominiumId { get; private set; }
 
     public Guid ResidentId { get; private set; }
 

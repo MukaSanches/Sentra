@@ -9,8 +9,16 @@ public sealed class ResidentTests
     [InlineData("+442071838750")]
     public void ResidentPhone_AcceptsE164(string value)
     {
-        var phone = new ResidentPhone(Guid.NewGuid(), value, true, true, "samuel");
+        var condominiumId = Guid.NewGuid();
+        var phone = new ResidentPhone(
+            condominiumId,
+            Guid.NewGuid(),
+            value,
+            true,
+            true,
+            "samuel");
 
+        Assert.Equal(condominiumId, phone.CondominiumId);
         Assert.Equal(value, phone.E164Number);
     }
 
@@ -21,7 +29,13 @@ public sealed class ResidentTests
     public void ResidentPhone_RejectsNonE164(string value)
     {
         Assert.Throws<ArgumentException>(() =>
-            new ResidentPhone(Guid.NewGuid(), value, true, true, "samuel"));
+            new ResidentPhone(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                value,
+                true,
+                true,
+                "samuel"));
     }
 
     [Fact]
@@ -29,6 +43,7 @@ public sealed class ResidentTests
     {
         var start = new DateTimeOffset(2026, 9, 20, 12, 0, 0, TimeSpan.Zero);
         var link = new ResidentUnit(
+            Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
             ResidentUnitRole.Owner,
