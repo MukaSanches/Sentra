@@ -56,6 +56,29 @@ public sealed class MessageTests
     }
 
     [Fact]
+    public void DeliveryStatus_AllowsForwardStateWhenProviderTimestampIsEarlierThanLocalAcceptance()
+    {
+        var occurredAt = DateTimeOffset.UtcNow;
+        var message = Message.CreateOutboundPending(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "Teste",
+            occurredAt);
+
+        var acceptedAt = occurredAt.AddSeconds(2);
+        message.MarkAccepted("wamid.1", acceptedAt);
+
+        var applied = message.ApplyDeliveryStatus(
+            MessageDeliveryStatus.Delivered,
+            acceptedAt.AddMilliseconds(-500));
+
+        Assert.True(applied);
+        Assert.Equal(
+            MessageDeliveryStatus.Delivered,
+            message.DeliveryStatus);
+    }
+
+    [Fact]
     public void WebhookEvent_BecomesDeadLetterAtMaxAttempts()
     {
         var now = DateTimeOffset.UtcNow;
