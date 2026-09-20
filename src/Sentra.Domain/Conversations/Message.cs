@@ -150,7 +150,6 @@ public sealed class Message : EntityBase
         string? errorCode = null)
     {
         if (status == MessageDeliveryStatus.Unknown ||
-            statusTimestamp < DeliveryStatusAt ||
             !CanTransition(DeliveryStatus, status))
         {
             return false;
