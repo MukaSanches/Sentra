@@ -42,3 +42,51 @@ jobs:
           name: sentra-test-results
           path: TestResults/**/*.trx
           if-no-files-found: error
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: sentra_ci
+          POSTGRES_USER: sentra
+          POSTGRES_PASSWORD: sentra_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sentra -d sentra_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_CONNECTION_STRING: Host=localhost;Port=5432;Database=sentra_ci;Username=sentra;Password=sentra_ci_password
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore integration tests
+        run: dotnet restore tests/Sentra.IntegrationTests/Sentra.IntegrationTests.csproj
+
+      - name: Build integration tests
+        run: dotnet build tests/Sentra.IntegrationTests/Sentra.IntegrationTests.csproj --configuration Release --no-restore
+
+      - name: Run PostgreSQL integration tests
+        run: dotnet test tests/Sentra.IntegrationTests/Sentra.IntegrationTests.csproj --configuration Release --no-build --results-directory IntegrationTestResults -- --report-trx
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sentra-postgres-integration-results
+          path: IntegrationTestResults/**/*.trx
+          if-no-files-found: error
