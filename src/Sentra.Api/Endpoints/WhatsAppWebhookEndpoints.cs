@@ -121,7 +121,8 @@ public static class WhatsAppWebhookEndpoints
         {
             await db.SaveChangesAsync(cancellationToken);
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException exception)
+            when (PostgresErrorClassifier.IsUniqueViolation(exception))
         {
             return Results.Ok(
                 new { accepted = true, duplicate = true });
