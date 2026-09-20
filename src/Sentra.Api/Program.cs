@@ -34,8 +34,10 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var authentication = builder.Services.AddAuthentication();
-var authority = builder.Configuration["Authentication:Authority"];
-var audience = builder.Configuration["Authentication:Audience"];
+var authority = builder.Configuration["Authentication:Authority"]
+    ?? builder.Configuration["AUTHORITY"];
+var audience = builder.Configuration["Authentication:Audience"]
+    ?? builder.Configuration["AUTH_AUDIENCE"];
 
 if (!string.IsNullOrWhiteSpace(authority) && !string.IsNullOrWhiteSpace(audience))
 {

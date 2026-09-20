@@ -10,19 +10,26 @@ public sealed class SetupReadinessHealthCheck(IConfiguration configuration) : IH
     {
         var missing = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("Postgres")))
+        var postgres = configuration.GetConnectionString("Postgres")
+            ?? configuration["DATABASE_CONNECTION_STRING"];
+        var authority = configuration["Authentication:Authority"]
+            ?? configuration["AUTHORITY"];
+        var audience = configuration["Authentication:Audience"]
+            ?? configuration["AUTH_AUDIENCE"];
+
+        if (string.IsNullOrWhiteSpace(postgres))
         {
-            missing.Add("ConnectionStrings:Postgres");
+            missing.Add("DATABASE_CONNECTION_STRING");
         }
 
-        if (string.IsNullOrWhiteSpace(configuration["Authentication:Authority"]))
+        if (string.IsNullOrWhiteSpace(authority))
         {
-            missing.Add("Authentication:Authority");
+            missing.Add("AUTHORITY");
         }
 
-        if (string.IsNullOrWhiteSpace(configuration["Authentication:Audience"]))
+        if (string.IsNullOrWhiteSpace(audience))
         {
-            missing.Add("Authentication:Audience");
+            missing.Add("AUTH_AUDIENCE");
         }
 
         return Task.FromResult(

@@ -11,7 +11,8 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var postgres = configuration.GetConnectionString("Postgres");
+        var postgres = configuration.GetConnectionString("Postgres")
+            ?? configuration["DATABASE_CONNECTION_STRING"];
 
         if (!string.IsNullOrWhiteSpace(postgres))
         {

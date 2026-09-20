@@ -1,9 +1,12 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Sentra.Infrastructure.Persistence.Migrations;
 
+[DbContext(typeof(SentraDbContext))]
+[Migration("20260920220000_InitialFoundation")]
 public partial class InitialFoundation : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
