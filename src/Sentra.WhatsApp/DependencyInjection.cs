@@ -2,6 +2,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Sentra.WhatsApp.Configuration;
 using Sentra.WhatsApp.Meta;
+using Sentra.WhatsApp.Services;
+using Sentra.WhatsApp.Workers;
 
 namespace Sentra.WhatsApp;
 
@@ -29,6 +31,11 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(30);
         });
         services.AddScoped<IMetaWhatsAppClient, MetaWhatsAppClient>();
+        services.AddScoped<IWhatsAppIntegrationService, WhatsAppIntegrationService>();
+        services.AddScoped<IWhatsAppWebhookIngressService, WhatsAppWebhookIngressService>();
+        services.AddScoped<IWhatsAppWebhookProcessor, WhatsAppWebhookProcessor>();
+        services.AddScoped<IWhatsAppMessagingService, WhatsAppMessagingService>();
+        services.AddHostedService<WhatsAppWebhookWorker>();
         return services;
     }
 }

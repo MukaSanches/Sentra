@@ -9,9 +9,11 @@ using Sentra.Api.Realtime;
 using Sentra.Api.Security;
 using Sentra.Application.Abstractions;
 using Sentra.Application.Services;
+using Sentra.Application.Realtime;
 using Sentra.Contracts.System;
 using Sentra.Domain.Access;
 using Sentra.Infrastructure;
+using Sentra.WhatsApp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +21,10 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IRealtimeOperationsNotifier, SignalROperationsNotifier>();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSentraInfrastructure(builder.Configuration);
+builder.Services.AddSentraWhatsApp(builder.Configuration);
 builder.Services.AddHealthChecks()
     .AddCheck<SetupReadinessHealthCheck>("setup-readiness", tags: new[] { "ready" });
 
