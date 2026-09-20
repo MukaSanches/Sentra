@@ -1,4 +1,4 @@
-name: EF Drift Diagnostic
+name: EF Snapshot Reconcile
 
 on:
   push:
@@ -6,10 +6,11 @@ on:
       - "feature/v1.0.0-m1-operations"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  ef-drift:
+  reconcile:
+    if: "!contains(github.event.head_commit.message, '[ef-snapshot]')"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -17,22 +18,44 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "10.0.x"
 
       - run: dotnet restore Sentra.sln
-
       - run: dotnet build Sentra.sln --configuration Release --no-restore
-
       - run: dotnet tool install --global dotnet-ef --version 10.0.12
 
-      - name: Generate exact EF model drift
+      - name: Generate model reconciliation
         run: dotnet ef migrations add M1ModelSync --project src/Sentra.Infrastructure --startup-project src/Sentra.Api --output-dir Persistence/Migrations --configuration Release --no-build
 
-      - name: Print generated migration
-        run: cat src/Sentra.Infrastructure/Persistence/Migrations/*M1ModelSync*.cs
+      - name: Verify drift is only already-created FK indexes
+        shell: bash
+        run: |
+          main_file="$(find src/Sentra.Infrastructure/Persistence/Migrations -maxdepth 1 -type f -name '*_M1ModelSync.cs' ! -name '*.Designer.cs' | head -n 1)"
+          test -n "$main_file"
+          test "$(grep -c 'migrationBuilder.CreateIndex' "$main_file")" -eq 3
+          grep -q 'IX_role_permissions_permission_id' "$main_file"
+          grep -q 'IX_resident_units_unit_id' "$main_file"
+          grep -q 'IX_employee_roles_role_id' "$main_file"
+          test "$(grep -c 'migrationBuilder\.' "$main_file")" -eq 6
 
-      - name: Print snapshot diff
-        run: git diff -- src/Sentra.Infrastructure/Persistence/Migrations/SentraDbContextModelSnapshot.cs
+      - name: Keep generated snapshot only
+        shell: bash
+        run: |
+          cp src/Sentra.Infrastructure/Persistence/Migrations/SentraDbContextModelSnapshot.cs /tmp/SentraDbContextModelSnapshot.cs
+          rm -f src/Sentra.Infrastructure/Persistence/Migrations/*M1ModelSync*.cs
+          cp /tmp/SentraDbContextModelSnapshot.cs src/Sentra.Infrastructure/Persistence/Migrations/SentraDbContextModelSnapshot.cs
+
+      - name: Commit canonical snapshot
+        shell: bash
+        run: |
+          git config user.name "SENTRA CI"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/Sentra.Infrastructure/Persistence/Migrations/SentraDbContextModelSnapshot.cs
+          git diff --cached --quiet && exit 0
+          git commit -m "fix(m1): regenerate canonical EF snapshot [ef-snapshot]"
+          git push origin HEAD:feature/v1.0.0-m1-operations
