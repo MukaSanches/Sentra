@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feature/**
+      - "feature/**"
   pull_request:
     branches:
       - main
@@ -24,7 +24,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: "10.0.x"
 
       - name: Restore
         run: dotnet restore Sentra.sln
@@ -33,4 +33,12 @@ jobs:
         run: dotnet build Sentra.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test Sentra.sln --configuration Release --no-build --verbosity normal
+        run: dotnet test Sentra.sln --configuration Release --no-build --results-directory TestResults -- --report-trx
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sentra-test-results
+          path: TestResults/**/*.trx
+          if-no-files-found: error
