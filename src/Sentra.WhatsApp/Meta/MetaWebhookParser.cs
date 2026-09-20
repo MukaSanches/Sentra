@@ -85,7 +85,7 @@ public sealed class MetaWebhookParser : IWhatsAppWebhookParser
             return (null, null);
         }
 
-        var contact = contacts[0];
+        var contact = contacts.EnumerateArray().First();
         var waId = GetString(contact, "wa_id");
         var name = GetNestedString(contact, "profile", "name");
         return (name, waId);
