@@ -102,7 +102,7 @@ public sealed class MetaWhatsAppClient(
         if (!document.RootElement.TryGetProperty("messages", out var messages) ||
             messages.ValueKind != JsonValueKind.Array ||
             messages.GetArrayLength() == 0 ||
-            !messages[0].TryGetProperty("id", out var idElement) ||
+            !messages.EnumerateArray().First().TryGetProperty("id", out var idElement) ||
             string.IsNullOrWhiteSpace(idElement.GetString()))
         {
             throw new InvalidDataException(
