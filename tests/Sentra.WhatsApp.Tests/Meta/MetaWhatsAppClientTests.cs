@@ -39,6 +39,40 @@ public sealed class MetaWhatsAppClientTests
     }
 
     [Fact]
+    public async Task GetMediaInfo_BindsLookupToConfiguredPhoneNumber()
+    {
+        var handler = new RecordingHandler(request =>
+        {
+            Assert.Equal(
+                "https://graph.facebook.com/v23.0/998877?phone_number_id=123456",
+                request.RequestUri?.ToString());
+            Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
+
+            return Json("""
+                {
+                  "id": "998877",
+                  "url": "https://lookaside.fbsbx.com/whatsapp_business/attachments/example",
+                  "mime_type": "audio/ogg",
+                  "sha256": "abc123",
+                  "file_size": 4096
+                }
+                """);
+        });
+
+        var client = CreateClient(handler);
+
+        var result = await client.GetMediaInfoAsync(
+            "998877",
+            CancellationToken.None);
+
+        Assert.Equal("998877", result.Id);
+        Assert.Equal("audio/ogg", result.MimeType);
+        Assert.Equal("abc123", result.Sha256);
+        Assert.Equal(4096, result.FileSize);
+        Assert.Equal(Uri.UriSchemeHttps, result.Url.Scheme);
+    }
+
+    [Fact]
     public async Task SendText_ReturnsWamidAndNeverPlacesTokenInUrl()
     {
         var handler = new RecordingHandler(async request =>
@@ -52,8 +86,14 @@ public sealed class MetaWhatsAppClientTests
                 StringComparison.Ordinal);
 
             var body = await request.Content!.ReadAsStringAsync();
-            Assert.Contains(""messaging_product":"whatsapp"", body, StringComparison.Ordinal);
-            Assert.Contains(""to":"5511999999999"", body, StringComparison.Ordinal);
+            Assert.Contains(
+                "\"messaging_product\":\"whatsapp\"",
+                body,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                "\"to\":\"5511999999999\"",
+                body,
+                StringComparison.Ordinal);
 
             return Json("""
                 {
