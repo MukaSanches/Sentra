@@ -65,7 +65,7 @@ public partial class SentraDbContextModelSnapshot : ModelSnapshot
         entity.Property(x => x.Code).HasColumnName("code").HasMaxLength(40);
         entity.Property(x => x.IsActive).HasColumnName("is_active").IsRequired();
         entity.HasIndex(x => new { x.CondominiumId, x.Name }).IsUnique().HasDatabaseName("ux_blocks_condominium_name");
-        entity.HasIndex(x => new { x.CondominiumId, x.Code }).IsUnique().HasFilter(""code" IS NOT NULL").HasDatabaseName("ux_blocks_condominium_code");
+        entity.HasIndex(x => new { x.CondominiumId, x.Code }).IsUnique().HasFilter(""" "code" IS NOT NULL """).HasDatabaseName("ux_blocks_condominium_code");
         entity.HasOne<Condominium>().WithMany().HasForeignKey(x => x.CondominiumId).OnDelete(DeleteBehavior.Restrict);
     }
 
@@ -97,7 +97,7 @@ public partial class SentraDbContextModelSnapshot : ModelSnapshot
 
     private static void ConfigureResidentPhone(EntityTypeBuilder<ResidentPhone> entity)
     {
-        entity.ToTable("resident_phones", table => table.HasCheckConstraint("ck_resident_phones_e164", ""e164_number" ~ '^\\+[1-9][0-9]{7,14}$'"));
+        entity.ToTable("resident_phones", table => table.HasCheckConstraint("ck_resident_phones_e164", """ "e164_number" ~ '^\+[1-9][0-9]{7,14}$' """));
         ConfigureAudited(entity);
         entity.Property(x => x.CondominiumId).HasColumnName("condominium_id").IsRequired();
         entity.Property(x => x.ResidentId).HasColumnName("resident_id").IsRequired();
@@ -105,14 +105,14 @@ public partial class SentraDbContextModelSnapshot : ModelSnapshot
         entity.Property(x => x.IsPrimary).HasColumnName("is_primary").IsRequired();
         entity.Property(x => x.IsWhatsAppEnabled).HasColumnName("is_whatsapp_enabled").IsRequired();
         entity.HasIndex(x => new { x.CondominiumId, x.E164Number }).IsUnique().HasDatabaseName("ux_resident_phones_condominium_e164");
-        entity.HasIndex(x => x.ResidentId).HasFilter(""is_primary" = TRUE").IsUnique().HasDatabaseName("ux_resident_phones_primary");
+        entity.HasIndex(x => x.ResidentId).HasFilter(""" "is_primary" = TRUE """).IsUnique().HasDatabaseName("ux_resident_phones_primary");
         entity.HasOne<Condominium>().WithMany().HasForeignKey(x => x.CondominiumId).OnDelete(DeleteBehavior.Restrict);
         entity.HasOne<Resident>().WithMany().HasForeignKey(x => x.ResidentId).OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureResidentUnit(EntityTypeBuilder<ResidentUnit> entity)
     {
-        entity.ToTable("resident_units", table => table.HasCheckConstraint("ck_resident_units_dates", ""ends_at" IS NULL OR "ends_at" > "starts_at""));
+        entity.ToTable("resident_units", table => table.HasCheckConstraint("ck_resident_units_dates", """ "ends_at" IS NULL OR "ends_at" > "starts_at" """));
         ConfigureAudited(entity);
         entity.Property(x => x.CondominiumId).HasColumnName("condominium_id").IsRequired();
         entity.Property(x => x.ResidentId).HasColumnName("resident_id").IsRequired();
@@ -121,8 +121,8 @@ public partial class SentraDbContextModelSnapshot : ModelSnapshot
         entity.Property(x => x.IsPrimary).HasColumnName("is_primary").IsRequired();
         entity.Property(x => x.StartsAt).HasColumnName("starts_at").IsRequired();
         entity.Property(x => x.EndsAt).HasColumnName("ends_at");
-        entity.HasIndex(x => new { x.ResidentId, x.UnitId }).IsUnique().HasFilter(""ends_at" IS NULL").HasDatabaseName("ux_resident_units_active_link");
-        entity.HasIndex(x => x.ResidentId).IsUnique().HasFilter(""is_primary" = TRUE AND "ends_at" IS NULL").HasDatabaseName("ux_resident_units_primary");
+        entity.HasIndex(x => new { x.ResidentId, x.UnitId }).IsUnique().HasFilter(""" "ends_at" IS NULL """).HasDatabaseName("ux_resident_units_active_link");
+        entity.HasIndex(x => x.ResidentId).IsUnique().HasFilter(""" "is_primary" = TRUE AND "ends_at" IS NULL """).HasDatabaseName("ux_resident_units_primary");
         entity.HasIndex(x => x.CondominiumId).HasDatabaseName("ix_resident_units_condominium");
         entity.HasOne<Condominium>().WithMany().HasForeignKey(x => x.CondominiumId).OnDelete(DeleteBehavior.Restrict);
         entity.HasOne<Resident>().WithMany().HasForeignKey(x => x.ResidentId).OnDelete(DeleteBehavior.Restrict);

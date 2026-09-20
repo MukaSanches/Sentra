@@ -76,7 +76,7 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
         entity.HasIndex(x => new { x.CondominiumId, x.Name }).IsUnique()
             .HasDatabaseName("ux_blocks_condominium_name");
         entity.HasIndex(x => new { x.CondominiumId, x.Code }).IsUnique()
-            .HasFilter(""code" IS NOT NULL")
+            .HasFilter(""" "code" IS NOT NULL """)
             .HasDatabaseName("ux_blocks_condominium_code");
         entity.HasOne<Condominium>().WithMany().HasForeignKey(x => x.CondominiumId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -118,7 +118,7 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
             "resident_phones",
             table => table.HasCheckConstraint(
                 "ck_resident_phones_e164",
-                ""e164_number" ~ '^\\+[1-9][0-9]{7,14}$'"));
+                """ "e164_number" ~ '^\+[1-9][0-9]{7,14}$' """));
         ConfigureAudited(entity);
         entity.Property(x => x.CondominiumId).HasColumnName("condominium_id").IsRequired();
         entity.Property(x => x.ResidentId).HasColumnName("resident_id").IsRequired();
@@ -127,7 +127,7 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
         entity.Property(x => x.IsWhatsAppEnabled).HasColumnName("is_whatsapp_enabled").IsRequired();
         entity.HasIndex(x => new { x.CondominiumId, x.E164Number }).IsUnique()
             .HasDatabaseName("ux_resident_phones_condominium_e164");
-        entity.HasIndex(x => x.ResidentId).HasFilter(""is_primary" = TRUE").IsUnique()
+        entity.HasIndex(x => x.ResidentId).HasFilter(""" "is_primary" = TRUE """).IsUnique()
             .HasDatabaseName("ux_resident_phones_primary");
         entity.HasOne<Condominium>().WithMany().HasForeignKey(x => x.CondominiumId)
             .OnDelete(DeleteBehavior.Restrict);
@@ -141,7 +141,7 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
             "resident_units",
             table => table.HasCheckConstraint(
                 "ck_resident_units_dates",
-                ""ends_at" IS NULL OR "ends_at" > "starts_at""));
+                """ "ends_at" IS NULL OR "ends_at" > "starts_at" """));
         ConfigureAudited(entity);
         entity.Property(x => x.CondominiumId).HasColumnName("condominium_id").IsRequired();
         entity.Property(x => x.ResidentId).HasColumnName("resident_id").IsRequired();
@@ -151,10 +151,10 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
         entity.Property(x => x.StartsAt).HasColumnName("starts_at").IsRequired();
         entity.Property(x => x.EndsAt).HasColumnName("ends_at");
         entity.HasIndex(x => new { x.ResidentId, x.UnitId }).IsUnique()
-            .HasFilter(""ends_at" IS NULL")
+            .HasFilter(""" "ends_at" IS NULL """)
             .HasDatabaseName("ux_resident_units_active_link");
         entity.HasIndex(x => x.ResidentId).IsUnique()
-            .HasFilter(""is_primary" = TRUE AND "ends_at" IS NULL")
+            .HasFilter(""" "is_primary" = TRUE AND "ends_at" IS NULL """)
             .HasDatabaseName("ux_resident_units_primary");
         entity.HasIndex(x => x.CondominiumId).HasDatabaseName("ix_resident_units_condominium");
         entity.HasOne<Condominium>().WithMany().HasForeignKey(x => x.CondominiumId)
