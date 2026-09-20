@@ -24,13 +24,14 @@ public enum MessageContentKind
 
 public enum MessageDeliveryStatus
 {
-    Pending = 0,
-    Received = 1,
-    Accepted = 2,
-    Sent = 3,
-    Delivered = 4,
-    Read = 5,
-    Failed = 6
+    Unknown = 0,
+    Pending = 1,
+    Received = 2,
+    Accepted = 3,
+    Sent = 4,
+    Delivered = 5,
+    Read = 6,
+    Failed = 7
 }
 
 public sealed class Message : EntityBase
@@ -128,6 +129,11 @@ public sealed class Message : EntityBase
         string externalMessageId,
         DateTimeOffset timestamp)
     {
+        if (!CanTransition(DeliveryStatus, MessageDeliveryStatus.Accepted))
+        {
+            return;
+        }
+
         ExternalMessageId = Required(
             externalMessageId,
             nameof(externalMessageId),
@@ -143,7 +149,9 @@ public sealed class Message : EntityBase
         DateTimeOffset statusTimestamp,
         string? errorCode = null)
     {
-        if (statusTimestamp < DeliveryStatusAt)
+        if (status == MessageDeliveryStatus.Unknown ||
+            statusTimestamp < DeliveryStatusAt ||
+            !CanTransition(DeliveryStatus, status))
         {
             return false;
         }
@@ -159,11 +167,44 @@ public sealed class Message : EntityBase
         string errorCode,
         DateTimeOffset timestamp)
     {
+        if (!CanTransition(DeliveryStatus, MessageDeliveryStatus.Failed))
+        {
+            return;
+        }
+
         DeliveryStatus = MessageDeliveryStatus.Failed;
         DeliveryStatusAt = timestamp;
         LastErrorCode = Required(errorCode, nameof(errorCode), 96);
         MarkUpdated(timestamp);
     }
+
+    private static bool CanTransition(
+        MessageDeliveryStatus current,
+        MessageDeliveryStatus next)
+        => current switch
+        {
+            MessageDeliveryStatus.Unknown => next != MessageDeliveryStatus.Unknown,
+            MessageDeliveryStatus.Pending => next is
+                MessageDeliveryStatus.Accepted
+                or MessageDeliveryStatus.Sent
+                or MessageDeliveryStatus.Delivered
+                or MessageDeliveryStatus.Read
+                or MessageDeliveryStatus.Failed,
+            MessageDeliveryStatus.Accepted => next is
+                MessageDeliveryStatus.Sent
+                or MessageDeliveryStatus.Delivered
+                or MessageDeliveryStatus.Read
+                or MessageDeliveryStatus.Failed,
+            MessageDeliveryStatus.Sent => next is
+                MessageDeliveryStatus.Delivered
+                or MessageDeliveryStatus.Read
+                or MessageDeliveryStatus.Failed,
+            MessageDeliveryStatus.Delivered => next == MessageDeliveryStatus.Read,
+            MessageDeliveryStatus.Read => false,
+            MessageDeliveryStatus.Failed => false,
+            MessageDeliveryStatus.Received => false,
+            _ => false
+        };
 
     private static string Required(string value, string name, int maxLength)
     {
