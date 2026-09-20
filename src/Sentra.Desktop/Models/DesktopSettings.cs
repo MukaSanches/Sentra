@@ -15,7 +15,8 @@ public sealed record DesktopSettings(
             return null;
         }
 
-        if (uri.Scheme is not (Uri.UriSchemeHttps or Uri.UriSchemeHttp))
+        if (!string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
         {
             return null;
         }
