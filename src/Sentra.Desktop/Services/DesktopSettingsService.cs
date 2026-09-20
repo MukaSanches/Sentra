@@ -22,7 +22,7 @@ public sealed class DesktopSettingsService : IDesktopSettingsService
     {
     }
 
-    internal DesktopSettingsService(string path)
+    public DesktopSettingsService(string path)
     {
         _path = path;
     }
