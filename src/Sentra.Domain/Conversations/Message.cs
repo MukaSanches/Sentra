@@ -106,6 +106,13 @@ public sealed class Message : EntityBase
                 nameof(clientRequestId));
         }
 
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new ArgumentException(
+                "Mensagem não pode ser vazia.",
+                nameof(text));
+        }
+
         return new(
             conversationId,
             MessageDirection.Outbound,
