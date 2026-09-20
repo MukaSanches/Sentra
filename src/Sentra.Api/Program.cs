@@ -1,20 +1,20 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.EntityFrameworkCore;
 using Sentra.Api.Health;
 using Sentra.Api.Middleware;
 using Sentra.Api.Realtime;
 using Sentra.Application.Abstractions;
 using Sentra.Application.Services;
 using Sentra.Contracts.System;
-using Sentra.Infrastructure.Persistence;
+using Sentra.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IClock, SystemClock>();
+builder.Services.AddSentraInfrastructure(builder.Configuration);
 builder.Services.AddHealthChecks()
     .AddCheck<SetupReadinessHealthCheck>("setup-readiness", tags: new[] { "ready" });
 
@@ -48,15 +48,6 @@ if (!string.IsNullOrWhiteSpace(authority) && !string.IsNullOrWhiteSpace(audience
 }
 
 builder.Services.AddAuthorization();
-
-var postgres = builder.Configuration.GetConnectionString("Postgres");
-if (!string.IsNullOrWhiteSpace(postgres))
-{
-    builder.Services.AddDbContext<SentraDbContext>(options =>
-        options.UseNpgsql(
-            postgres,
-            npgsql => npgsql.MigrationsAssembly(typeof(SentraDbContext).Assembly.FullName)));
-}
 
 var app = builder.Build();
 
