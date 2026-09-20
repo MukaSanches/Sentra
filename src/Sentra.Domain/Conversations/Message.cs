@@ -19,7 +19,8 @@ public enum MessageContentKind
     Location = 6,
     Contacts = 7,
     Interactive = 8,
-    Reaction = 9
+    Reaction = 9,
+    Template = 10
 }
 
 public enum MessageDeliveryStatus
@@ -100,6 +101,19 @@ public sealed class Message : EntityBase
         Guid clientRequestId,
         string text,
         DateTimeOffset occurredAt)
+        => CreateOutboundPending(
+            conversationId,
+            clientRequestId,
+            MessageContentKind.Text,
+            text,
+            occurredAt);
+
+    public static Message CreateOutboundPending(
+        Guid conversationId,
+        Guid clientRequestId,
+        MessageContentKind contentKind,
+        string summary,
+        DateTimeOffset occurredAt)
     {
         if (clientRequestId == Guid.Empty)
         {
@@ -108,18 +122,25 @@ public sealed class Message : EntityBase
                 nameof(clientRequestId));
         }
 
-        if (string.IsNullOrWhiteSpace(text))
+        if (contentKind is MessageContentKind.Unknown or MessageContentKind.Reaction)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(contentKind),
+                "Tipo de conteúdo não é válido para envio iniciado pelo SENTRA.");
+        }
+
+        if (string.IsNullOrWhiteSpace(summary))
         {
             throw new ArgumentException(
-                "Mensagem não pode ser vazia.",
-                nameof(text));
+                "Resumo da mensagem não pode ser vazio.",
+                nameof(summary));
         }
 
         return new(
             conversationId,
             MessageDirection.Outbound,
-            MessageContentKind.Text,
-            text,
+            contentKind,
+            summary,
             occurredAt,
             null,
             clientRequestId,

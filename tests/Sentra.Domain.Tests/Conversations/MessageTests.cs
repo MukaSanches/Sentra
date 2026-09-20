@@ -123,3 +123,34 @@ public sealed class MessageTests
             webhook.Status);
     }
 }
+
+
+public sealed class OutboundMessageKindTests
+{
+    [Fact]
+    public void CreateOutboundPending_PreservesInteractiveKind()
+    {
+        var message = Message.CreateOutboundPending(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            MessageContentKind.Interactive,
+            "Autorizar entrada?",
+            DateTimeOffset.UtcNow);
+
+        Assert.Equal(MessageDirection.Outbound, message.Direction);
+        Assert.Equal(MessageContentKind.Interactive, message.ContentKind);
+        Assert.Equal(MessageDeliveryStatus.Pending, message.DeliveryStatus);
+    }
+
+    [Fact]
+    public void CreateOutboundPending_RejectsUnknownKind()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Message.CreateOutboundPending(
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                MessageContentKind.Unknown,
+                "teste",
+                DateTimeOffset.UtcNow));
+    }
+}
