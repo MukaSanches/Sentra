@@ -1,0 +1,92 @@
+<UserControl x:Class="Sentra.Desktop.Views.ConversationsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0" Margin="0,0,0,14">
+      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <StackPanel>
+        <TextBlock Text="Conversas" FontSize="26" FontWeight="SemiBold"/>
+        <TextBlock Text="Canal WhatsApp oficial. Fatos operacionais continuam vindo do banco SENTRA."
+                   Foreground="#596671" Margin="0,5,0,0"/>
+      </StackPanel>
+      <Button Grid.Column="1" Style="{StaticResource SentraButton}"
+              Content="Atualizar" Command="{Binding LoadCommand}"/>
+    </Grid>
+
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="340"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <Border Grid.Column="0" Style="{StaticResource SentraCard}">
+        <DataGrid ItemsSource="{Binding Conversations}"
+                  SelectedItem="{Binding SelectedConversation}"
+                  IsReadOnly="True">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Contato" Binding="{Binding DisplayName}" Width="*"/>
+            <DataGridTextColumn Header="WhatsApp" Binding="{Binding ExternalParticipantId}" Width="130"/>
+            <DataGridCheckBoxColumn Header="24h" Binding="{Binding CustomerServiceWindowOpen}" Width="55"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Border>
+
+      <Grid Grid.Column="1">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource SentraCard}">
+          <DataGrid ItemsSource="{Binding Messages}" IsReadOnly="True">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Data" Binding="{Binding MessageTimestamp}" Width="155"/>
+              <DataGridTextColumn Header="Direção" Binding="{Binding Direction}" Width="70"/>
+              <DataGridTextColumn Header="Mensagem" Binding="{Binding Text}" Width="*"/>
+              <DataGridTextColumn Header="Status" Binding="{Binding DeliveryStatus}" Width="75"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource SentraCard}">
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <TextBox Style="{StaticResource SentraTextBox}"
+                     Text="{Binding MessageText, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Mensagem livre dentro da janela de 24 horas"/>
+            <Button Grid.Column="1" Style="{StaticResource SentraButton}"
+                    Content="Enviar mensagem" Command="{Binding SendTextCommand}"/>
+          </Grid>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource SentraCard}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="220"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Style="{StaticResource SentraComboBox}"
+                      ItemsSource="{Binding Templates}"
+                      SelectedItem="{Binding SelectedTemplate}"
+                      DisplayMemberPath="Name"/>
+            <TextBox Grid.Column="1" Style="{StaticResource SentraTextBox}"
+                     Text="{Binding TemplateParameters, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="Parâmetros do corpo separados por |"/>
+            <Button Grid.Column="2" Style="{StaticResource SentraButton}"
+                    Content="Enviar template" Command="{Binding SendTemplateCommand}"/>
+          </Grid>
+        </Border>
+      </Grid>
+    </Grid>
+
+    <TextBlock Grid.Row="2" Margin="4,10,4,0" Text="{Binding Status}" Foreground="#596671"/>
+  </Grid>
+</UserControl>
