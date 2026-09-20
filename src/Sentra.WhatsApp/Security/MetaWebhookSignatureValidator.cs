@@ -16,22 +16,20 @@ public static class MetaWebhookSignatureValidator
             return false;
         }
 
-        var suppliedHex = signatureHeader[Prefix.Length..];
-        if (suppliedHex.Length != 64) return false;
-
-        Span<byte> supplied = stackalloc byte[32];
-        if (!Convert.TryFromHexString(suppliedHex, supplied, out var bytesWritten) || bytesWritten != 32)
+        byte[] supplied;
+        try
+        {
+            var suppliedHex = signatureHeader[Prefix.Length..];
+            if (suppliedHex.Length != 64) return false;
+            supplied = Convert.FromHexString(suppliedHex);
+        }
+        catch (FormatException)
         {
             return false;
         }
 
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(appSecret));
-        Span<byte> expected = stackalloc byte[32];
-        if (!hmac.TryComputeHash(payload, expected, out var expectedWritten) || expectedWritten != 32)
-        {
-            return false;
-        }
-
+        var expected = hmac.ComputeHash(payload.ToArray());
         return CryptographicOperations.FixedTimeEquals(expected, supplied);
     }
 
