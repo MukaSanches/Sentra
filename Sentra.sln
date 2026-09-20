@@ -20,6 +20,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentra.Api.Tests", "tests\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentra.Desktop.Tests", "tests\Sentra.Desktop.Tests\Sentra.Desktop.Tests.csproj", "{7E29028B-CE64-467F-8DF2-61C6C5A77C47}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentra.WhatsApp", "src\Sentra.WhatsApp\Sentra.WhatsApp.csproj", "{C6D67E5F-01BB-4FE2-97A0-B3610563CFB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sentra.WhatsApp.Tests", "tests\Sentra.WhatsApp.Tests\Sentra.WhatsApp.Tests.csproj", "{B9B9CA04-E56A-4A0B-80AC-DC35107862DB}"
+EndProject
 Global
   GlobalSection(SolutionConfigurationPlatforms) = preSolution
     Debug|Any CPU = Debug|Any CPU
@@ -62,5 +66,13 @@ Global
     {7E29028B-CE64-467F-8DF2-61C6C5A77C47}.Debug|Any CPU.Build.0 = Debug|Any CPU
     {7E29028B-CE64-467F-8DF2-61C6C5A77C47}.Release|Any CPU.ActiveCfg = Release|Any CPU
     {7E29028B-CE64-467F-8DF2-61C6C5A77C47}.Release|Any CPU.Build.0 = Release|Any CPU
+    {C6D67E5F-01BB-4FE2-97A0-B3610563CFB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {C6D67E5F-01BB-4FE2-97A0-B3610563CFB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {C6D67E5F-01BB-4FE2-97A0-B3610563CFB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {C6D67E5F-01BB-4FE2-97A0-B3610563CFB7}.Release|Any CPU.Build.0 = Release|Any CPU
+    {B9B9CA04-E56A-4A0B-80AC-DC35107862DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {B9B9CA04-E56A-4A0B-80AC-DC35107862DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {B9B9CA04-E56A-4A0B-80AC-DC35107862DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {B9B9CA04-E56A-4A0B-80AC-DC35107862DB}.Release|Any CPU.Build.0 = Release|Any CPU
   EndGlobalSection
 EndGlobal

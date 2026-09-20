@@ -9,6 +9,9 @@ public static class PermissionCodes
     public const string EmployeesRead = "employees.read";
     public const string EmployeesManage = "employees.manage";
     public const string RolesManage = "roles.manage";
+    public const string ConversationsRead = "conversations.read";
+    public const string ConversationsSend = "conversations.send";
+    public const string IntegrationsManage = "integrations.manage";
 
     public static readonly IReadOnlySet<string> All = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -18,6 +21,9 @@ public static class PermissionCodes
         ResidentsWrite,
         EmployeesRead,
         EmployeesManage,
-        RolesManage
+        RolesManage,
+        ConversationsRead,
+        ConversationsSend,
+        IntegrationsManage
     };
 }
