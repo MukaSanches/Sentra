@@ -26,7 +26,4 @@ public interface IWhatsAppClient
     Task<WhatsAppMediaInfo> GetMediaInfoAsync(
         string mediaId,
         CancellationToken cancellationToken);
-    Task<HttpResponseMessage> DownloadMediaAsync(
-        Uri mediaUrl,
-        CancellationToken cancellationToken);
 }
