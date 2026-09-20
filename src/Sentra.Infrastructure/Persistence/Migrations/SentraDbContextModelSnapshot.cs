@@ -326,6 +326,10 @@ namespace Sentra.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ResidentId");
+
+                    b.HasIndex("UnitId");
+
                     b.HasIndex("CondominiumId", "LastMessageAt")
                         .HasDatabaseName("ix_conversations_condominium_last_message");
 
@@ -972,6 +976,25 @@ namespace Sentra.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sentra.Domain.Conversations.Conversation", b =>
+                {
+                    b.HasOne("Sentra.Domain.Condominiums.Condominium", null)
+                        .WithMany()
+                        .HasForeignKey("CondominiumId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sentra.Domain.Residents.Resident", null)
+                        .WithMany()
+                        .HasForeignKey("ResidentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Sentra.Domain.Condominiums.Unit", null)
+                        .WithMany()
+                        .HasForeignKey("UnitId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("Sentra.Domain.Conversations.ConversationParticipant", b =>
                 {
                     b.HasOne("Sentra.Domain.Conversations.Conversation", null)
@@ -986,6 +1009,15 @@ namespace Sentra.Infrastructure.Persistence.Migrations
                     b.HasOne("Sentra.Domain.Conversations.Conversation", null)
                         .WithMany()
                         .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sentra.Domain.Integrations.Integration", b =>
+                {
+                    b.HasOne("Sentra.Domain.Condominiums.Condominium", null)
+                        .WithMany()
+                        .HasForeignKey("CondominiumId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
