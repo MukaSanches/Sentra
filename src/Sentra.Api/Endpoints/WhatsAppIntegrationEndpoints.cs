@@ -89,7 +89,6 @@ public static class WhatsAppIntegrationEndpoints
                 detail: "Configure as credenciais oficiais da Meta antes de testar a integração.");
         }
 
-        var now = clock.UtcNow;
         var existing = await db.Integrations.SingleOrDefaultAsync(
             item =>
                 item.CondominiumId == condominiumId &&
@@ -100,6 +99,7 @@ public static class WhatsAppIntegrationEndpoints
         {
             var info = await client.GetPhoneInfoAsync(cancellationToken);
             await client.SubscribeWabaAsync(cancellationToken);
+            var now = clock.UtcNow;
 
             if (existing is not null &&
                 !string.Equals(
@@ -158,7 +158,7 @@ public static class WhatsAppIntegrationEndpoints
         {
             if (existing is not null)
             {
-                existing.MarkDegraded("meta_timeout", now);
+                existing.MarkDegraded("meta_timeout", clock.UtcNow);
                 await db.SaveChangesAsync(CancellationToken.None);
             }
 
@@ -171,7 +171,7 @@ public static class WhatsAppIntegrationEndpoints
         {
             if (existing is not null)
             {
-                existing.MarkDegraded("meta_request_failed", now);
+                existing.MarkDegraded("meta_request_failed", clock.UtcNow);
                 await db.SaveChangesAsync(CancellationToken.None);
             }
 
