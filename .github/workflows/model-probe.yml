@@ -1,0 +1,44 @@
+name: EF Model Probe
+
+on:
+  push:
+    branches:
+      - feature/m1-core-operations
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_CONNECTION_STRING: "Host=localhost;Port=5432;Database=sentra_probe;Username=sentra;Password=sentra_probe_only"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install EF tool
+        run: dotnet tool install --global dotnet-ef --version 10.0.12
+
+      - name: Restore infrastructure
+        run: dotnet restore src/Sentra.Infrastructure/Sentra.Infrastructure.csproj
+
+      - name: Build infrastructure
+        run: dotnet build src/Sentra.Infrastructure/Sentra.Infrastructure.csproj -c Release --no-restore
+
+      - name: Generate model probe
+        run: dotnet ef migrations add SnapshotProbe --project src/Sentra.Infrastructure/Sentra.Infrastructure.csproj --output-dir Persistence/Migrations/Probe --configuration Release --no-build
+
+      - name: Print generated snapshot
+        shell: bash
+        run: |
+          echo "===SENTRA_SNAPSHOT_BEGIN==="
+          cat src/Sentra.Infrastructure/Persistence/Migrations/SentraDbContextModelSnapshot.cs
+          echo "===SENTRA_SNAPSHOT_END==="
