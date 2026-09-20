@@ -99,7 +99,6 @@ public static class WhatsAppIntegrationEndpoints
         {
             var info = await client.GetPhoneInfoAsync(cancellationToken);
             await client.SubscribeWabaAsync(cancellationToken);
-            var now = clock.UtcNow;
 
             if (existing is not null &&
                 !string.Equals(
@@ -127,9 +126,10 @@ public static class WhatsAppIntegrationEndpoints
                 db.Integrations.Add(integration);
             }
 
+            var verifiedAt = clock.UtcNow;
             integration.MarkConnected(
                 info.VerifiedName,
-                now);
+                verifiedAt);
 
             db.AuditEvents.Add(
                 new AuditEvent(
@@ -137,7 +137,7 @@ public static class WhatsAppIntegrationEndpoints
                     nameof(Integration),
                     integration.Id.ToString(),
                     "success",
-                    now,
+                    verifiedAt,
                     user.FindFirstValue(ClaimTypes.NameIdentifier)
                         ?? user.FindFirstValue("sub"),
                     httpContext.Items["X-Correlation-ID"]?.ToString()));
@@ -151,7 +151,7 @@ public static class WhatsAppIntegrationEndpoints
                     info.VerifiedName,
                     info.DisplayPhoneNumber,
                     info.QualityRating,
-                    now));
+                    verifiedAt));
         }
         catch (OperationCanceledException)
             when (!cancellationToken.IsCancellationRequested)
