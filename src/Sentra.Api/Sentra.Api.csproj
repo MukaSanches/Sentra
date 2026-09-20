@@ -8,6 +8,7 @@
     <ProjectReference Include="..\Sentra.Application\Sentra.Application.csproj" />
     <ProjectReference Include="..\Sentra.Contracts\Sentra.Contracts.csproj" />
     <ProjectReference Include="..\Sentra.Infrastructure\Sentra.Infrastructure.csproj" />
+    <ProjectReference Include="..\Sentra.WhatsApp\Sentra.WhatsApp.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
   </ItemGroup>
