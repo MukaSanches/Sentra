@@ -132,11 +132,14 @@ public static class ConversationEndpoints
                 new { error = "ClientRequestId e texto são obrigatórios." });
         }
 
-        var existingRequest = await db.Messages
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                item => item.ClientRequestId == request.ClientRequestId,
-                cancellationToken);
+        var existingRequest = await (
+            from existingMessage in db.Messages.AsNoTracking()
+            join existingConversation in db.Conversations.AsNoTracking()
+                on existingMessage.ConversationId equals existingConversation.Id
+            where existingMessage.ClientRequestId == request.ClientRequestId
+                  && existingConversation.CondominiumId == condominiumId
+            select existingMessage)
+            .SingleOrDefaultAsync(cancellationToken);
 
         if (existingRequest is not null)
         {
