@@ -32,15 +32,27 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-var connectionString = builder.Configuration.GetConnectionString("Sentra");
+var connectionString =
+    builder.Configuration.GetConnectionString("Sentra") ??
+    builder.Configuration["DATABASE_CONNECTION_STRING"];
+
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddSentraInfrastructure(connectionString);
 }
 
-var issuer = builder.Configuration["Sentra:Auth:Issuer"];
-var audience = builder.Configuration["Sentra:Auth:Audience"];
-var signingKey = builder.Configuration["Sentra:Auth:SigningKey"];
+var issuer =
+    builder.Configuration["Sentra:Auth:Issuer"] ??
+    builder.Configuration["SENTRA_AUTH_ISSUER"];
+
+var audience =
+    builder.Configuration["Sentra:Auth:Audience"] ??
+    builder.Configuration["SENTRA_AUTH_AUDIENCE"];
+
+var signingKey =
+    builder.Configuration["Sentra:Auth:SigningKey"] ??
+    builder.Configuration["SENTRA_AUTH_SIGNING_KEY"];
+
 var authenticationConfigured =
     !string.IsNullOrWhiteSpace(issuer) &&
     !string.IsNullOrWhiteSpace(audience) &&
@@ -76,6 +88,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseHttpsRedirection();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -97,4 +110,6 @@ app.MapGet("/api/system/status", () =>
 
 app.Run();
 
-public partial class Program;
+public partial class Program
+{
+}
