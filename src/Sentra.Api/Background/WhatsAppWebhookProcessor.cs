@@ -324,7 +324,8 @@ public sealed class WhatsAppWebhookProcessor(
                 incoming.MediaId,
                 incoming.MimeType,
                 incoming.FileName,
-                incoming.Sha256);
+                incoming.Sha256,
+                processingTime);
 
             attachment.MarkAwaitingConfiguration(processingTime);
             db.Attachments.Add(attachment);
@@ -390,7 +391,7 @@ public sealed class WhatsAppWebhookProcessor(
             "delivered" => MessageDeliveryStatus.Delivered,
             "read" => MessageDeliveryStatus.Read,
             "failed" => MessageDeliveryStatus.Failed,
-            _ => MessageDeliveryStatus.Accepted
+            _ => MessageDeliveryStatus.Unknown
         };
 
     private static TimeSpan RetryDelay(int attempt)
