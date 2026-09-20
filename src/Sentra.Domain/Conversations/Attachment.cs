@@ -21,7 +21,9 @@ public sealed class Attachment : EntityBase
         string externalMediaId,
         string? mimeType,
         string? fileName,
-        string? sha256)
+        string? sha256,
+        DateTimeOffset createdAt)
+        : base(createdAt)
     {
         if (messageId == Guid.Empty)
         {
