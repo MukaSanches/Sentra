@@ -3,6 +3,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using Sentra.Api.Background;
 using Sentra.Api.Endpoints;
 using Sentra.Api.Health;
 using Sentra.Api.Middleware;
@@ -12,6 +13,7 @@ using Sentra.Application.Security;
 using Sentra.Application.Services;
 using Sentra.Contracts.System;
 using Sentra.Infrastructure;
+using Sentra.WhatsApp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSentraInfrastructure(builder.Configuration);
+builder.Services.AddSentraWhatsApp(builder.Configuration);
 builder.Services.AddHealthChecks()
     .AddCheck<SetupReadinessHealthCheck>(
         "setup-readiness",
@@ -129,6 +132,11 @@ var postgres = builder.Configuration.GetConnectionString("Postgres")
     ?? builder.Configuration["DATABASE_CONNECTION_STRING"];
 var databaseConfigured = !string.IsNullOrWhiteSpace(postgres);
 
+if (databaseConfigured)
+{
+    builder.Services.AddHostedService<WhatsAppWebhookProcessor>();
+}
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
@@ -150,7 +158,7 @@ app.MapGet(
             "SENTRA — Central Inteligente de Portaria",
             "1.0.0",
             environment.EnvironmentName,
-            "m1-core-operations"));
+            "m2-whatsapp-cloud"));
 
 app.MapHealthChecks(
     "/health/live",
@@ -168,6 +176,7 @@ app.MapHub<OperationsHub>("/hubs/operations");
 if (databaseConfigured)
 {
     app.MapSentraSetupEndpoints();
+    app.MapWhatsAppWebhookEndpoints();
 
     if (localAuth)
     {
@@ -177,6 +186,8 @@ if (databaseConfigured)
     if (authConfigured)
     {
         app.MapSentraCoreOperationsEndpoints();
+        app.MapWhatsAppIntegrationEndpoints();
+        app.MapConversationEndpoints();
     }
 }
 
