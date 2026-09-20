@@ -25,7 +25,7 @@ public sealed class MetaWhatsAppClient(
         using var response =
             await httpClient.SendAsync(request, cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        await response.EnsureMetaSuccessAsync(cancellationToken);
 
         var payload = await response.Content.ReadFromJsonAsync<PhoneInfoPayload>(
             cancellationToken: cancellationToken)
@@ -39,22 +39,12 @@ public sealed class MetaWhatsAppClient(
         CancellationToken cancellationToken)
     {
         var settings = MetaWhatsAppConfiguration.From(configuration);
-        using var request = CreateRequest(
-            HttpMethod.Get,
+        var items = await GetAllPagesAsync<PhoneInfoPayload>(
             settings,
-            $"{settings.GraphVersion}/{settings.WabaId}/phone_numbers?fields=id,verified_name,display_phone_number,quality_rating&limit=100");
+            $"{settings.GraphVersion}/{settings.WabaId}/phone_numbers?fields=id,verified_name,display_phone_number,quality_rating&limit=100",
+            cancellationToken);
 
-        using var response =
-            await httpClient.SendAsync(request, cancellationToken);
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<PhoneListPayload>(
-            cancellationToken: cancellationToken)
-            ?? throw new InvalidDataException(
-                "A Meta retornou uma resposta vazia ao listar números da WABA.");
-
-        return payload.Data
+        return items
             .Where(item => !string.IsNullOrWhiteSpace(item.Id))
             .Select(item => MapPhoneInfo(item, item.Id!))
             .ToArray();
@@ -71,29 +61,19 @@ public sealed class MetaWhatsAppClient(
         using var response =
             await httpClient.SendAsync(request, cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        await response.EnsureMetaSuccessAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<WhatsAppTemplateInfo>> GetTemplatesAsync(
         CancellationToken cancellationToken)
     {
         var settings = MetaWhatsAppConfiguration.From(configuration);
-        using var request = CreateRequest(
-            HttpMethod.Get,
+        var items = await GetAllPagesAsync<TemplatePayload>(
             settings,
-            $"{settings.GraphVersion}/{settings.WabaId}/message_templates?fields=id,name,language,status,category&limit=100");
+            $"{settings.GraphVersion}/{settings.WabaId}/message_templates?fields=id,name,language,status,category&limit=100",
+            cancellationToken);
 
-        using var response =
-            await httpClient.SendAsync(request, cancellationToken);
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<TemplateListPayload>(
-            cancellationToken: cancellationToken)
-            ?? throw new InvalidDataException(
-                "A Meta retornou uma resposta vazia ao listar templates.");
-
-        return payload.Data
+        return items
             .Where(item =>
                 !string.IsNullOrWhiteSpace(item.Id) &&
                 !string.IsNullOrWhiteSpace(item.Name))
@@ -110,22 +90,12 @@ public sealed class MetaWhatsAppClient(
         CancellationToken cancellationToken)
     {
         var settings = MetaWhatsAppConfiguration.From(configuration);
-        using var request = CreateRequest(
-            HttpMethod.Get,
+        var items = await GetAllPagesAsync<FlowPayload>(
             settings,
-            $"{settings.GraphVersion}/{settings.WabaId}/flows?fields=id,name,status&limit=100");
+            $"{settings.GraphVersion}/{settings.WabaId}/flows?fields=id,name,status&limit=100",
+            cancellationToken);
 
-        using var response =
-            await httpClient.SendAsync(request, cancellationToken);
-
-        response.EnsureSuccessStatusCode();
-
-        var payload = await response.Content.ReadFromJsonAsync<FlowListPayload>(
-            cancellationToken: cancellationToken)
-            ?? throw new InvalidDataException(
-                "A Meta retornou uma resposta vazia ao listar Flows.");
-
-        return payload.Data
+        return items
             .Where(item =>
                 !string.IsNullOrWhiteSpace(item.Id) &&
                 !string.IsNullOrWhiteSpace(item.Name))
@@ -389,7 +359,7 @@ public sealed class MetaWhatsAppClient(
         });
 
         using var response = await httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureMetaSuccessAsync(cancellationToken);
     }
 
     public async Task<WhatsAppMediaInfo> GetMediaInfoAsync(
@@ -407,7 +377,7 @@ public sealed class MetaWhatsAppClient(
         using var response =
             await httpClient.SendAsync(request, cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        await response.EnsureMetaSuccessAsync(cancellationToken);
 
         var payload = await response.Content.ReadFromJsonAsync<MediaInfoPayload>(
             cancellationToken: cancellationToken)
@@ -454,7 +424,7 @@ public sealed class MetaWhatsAppClient(
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        await response.EnsureMetaSuccessAsync(cancellationToken);
 
         await response.Content.CopyToAsync(destination, cancellationToken);
     }
@@ -491,7 +461,7 @@ public sealed class MetaWhatsAppClient(
         request.Content = multipart;
 
         using var response = await httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureMetaSuccessAsync(cancellationToken);
 
         var payload = await response.Content.ReadFromJsonAsync<MediaUploadPayload>(
             cancellationToken: cancellationToken)
@@ -594,7 +564,7 @@ public sealed class MetaWhatsAppClient(
         using var response =
             await httpClient.SendAsync(request, cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        await response.EnsureMetaSuccessAsync(cancellationToken);
 
         using var document = JsonDocument.Parse(
             await response.Content.ReadAsStringAsync(cancellationToken));
@@ -610,6 +580,93 @@ public sealed class MetaWhatsAppClient(
         }
 
         return new WhatsAppSendResult(idElement.GetString()!);
+    }
+
+    private async Task<IReadOnlyList<T>> GetAllPagesAsync<T>(
+        MetaWhatsAppConfiguration settings,
+        string initialRelativeUri,
+        CancellationToken cancellationToken)
+    {
+        if (httpClient.BaseAddress is null)
+        {
+            throw new InvalidOperationException(
+                "Meta Graph API BaseAddress não está configurado.");
+        }
+
+        var items = new List<T>();
+        Uri? next = new Uri(httpClient.BaseAddress, initialRelativeUri);
+        var pageCount = 0;
+
+        while (next is not null)
+        {
+            pageCount++;
+
+            if (pageCount > 100)
+            {
+                throw new InvalidDataException(
+                    "A paginação da Meta excedeu o limite de segurança.");
+            }
+
+            next = NormalizeGraphPagingUri(next);
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, next);
+            request.Headers.Authorization =
+                new AuthenticationHeaderValue("Bearer", settings.AccessToken);
+
+            using var response =
+                await httpClient.SendAsync(request, cancellationToken);
+
+            await response.EnsureMetaSuccessAsync(cancellationToken);
+
+            var page = await response.Content.ReadFromJsonAsync<PagePayload<T>>(
+                cancellationToken: cancellationToken)
+                ?? throw new InvalidDataException(
+                    "A Meta retornou uma página vazia.");
+
+            if (page.Data is not null)
+            {
+                items.AddRange(page.Data);
+            }
+
+            next = string.IsNullOrWhiteSpace(page.Paging?.Next)
+                ? null
+                : ParsePagingUri(page.Paging.Next);
+        }
+
+        return items;
+    }
+
+    private static Uri ParsePagingUri(string value)
+    {
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri))
+        {
+            throw new InvalidDataException(
+                "A Meta retornou uma URL de paginação inválida.");
+        }
+
+        return uri;
+    }
+
+    private static Uri NormalizeGraphPagingUri(Uri uri)
+    {
+        if (!string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(uri.Host, "graph.facebook.com", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                "A paginação da Meta apontou para um host não permitido.");
+        }
+
+        var builder = new UriBuilder(uri);
+        var parameters = builder.Query
+            .TrimStart('?')
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Where(parameter =>
+                !parameter.StartsWith(
+                    "access_token=",
+                    StringComparison.OrdinalIgnoreCase));
+
+        builder.Query = string.Join("&", parameters);
+        return builder.Uri;
     }
 
     private static HttpRequestMessage CreateRequest(
@@ -682,6 +739,13 @@ public sealed class MetaWhatsAppClient(
         [property: JsonPropertyName("verified_name")] string? VerifiedName,
         [property: JsonPropertyName("display_phone_number")] string? DisplayPhoneNumber,
         [property: JsonPropertyName("quality_rating")] string? QualityRating);
+
+    private sealed record PagePayload<T>(
+        [property: JsonPropertyName("data")] IReadOnlyList<T>? Data,
+        [property: JsonPropertyName("paging")] PagingPayload? Paging);
+
+    private sealed record PagingPayload(
+        [property: JsonPropertyName("next")] string? Next);
 
     private sealed record PhoneListPayload(
         [property: JsonPropertyName("data")] IReadOnlyList<PhoneInfoPayload> Data);
