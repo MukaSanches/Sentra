@@ -1,0 +1,52 @@
+name: M2 Constraints Probe
+
+on:
+  push:
+    branches:
+      - feature/m2-whatsapp-cloud
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_CONNECTION_STRING: "Host=localhost;Port=5432;Database=sentra_probe;Username=sentra;Password=probe-only"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install EF tool
+        run: dotnet tool install --global dotnet-ef --version 10.0.12
+
+      - name: Restore infrastructure
+        run: dotnet restore src/Sentra.Infrastructure/Sentra.Infrastructure.csproj
+
+      - name: Build infrastructure
+        run: dotnet build src/Sentra.Infrastructure/Sentra.Infrastructure.csproj -c Release --no-restore
+
+      - name: Generate constraint migration
+        run: dotnet ef migrations add WhatsAppTenantConstraints --project src/Sentra.Infrastructure/Sentra.Infrastructure.csproj --output-dir Persistence/Migrations/Probe --configuration Release --no-build
+
+      - name: Print generated artifacts
+        shell: bash
+        run: |
+          MAIN=$(find src/Sentra.Infrastructure/Persistence/Migrations/Probe -maxdepth 1 -type f -name '*_WhatsAppTenantConstraints.cs' ! -name '*.Designer.cs' | head -1)
+          DESIGNER=$(find src/Sentra.Infrastructure/Persistence/Migrations/Probe -maxdepth 1 -type f -name '*_WhatsAppTenantConstraints.Designer.cs' | head -1)
+          echo "===SENTRA_CONSTRAINT_MAIN_BEGIN==="
+          cat "$MAIN"
+          echo "===SENTRA_CONSTRAINT_MAIN_END==="
+          echo "===SENTRA_CONSTRAINT_DESIGNER_BEGIN==="
+          cat "$DESIGNER"
+          echo "===SENTRA_CONSTRAINT_DESIGNER_END==="
+          echo "===SENTRA_CONSTRAINT_SNAPSHOT_BEGIN==="
+          cat src/Sentra.Infrastructure/Persistence/Migrations/SentraDbContextModelSnapshot.cs
+          echo "===SENTRA_CONSTRAINT_SNAPSHOT_END==="
