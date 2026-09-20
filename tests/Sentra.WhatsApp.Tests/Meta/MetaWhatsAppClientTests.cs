@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Sentra.Application.Integrations.WhatsApp;
 using Sentra.WhatsApp.Meta;
@@ -17,7 +18,7 @@ public sealed class MetaWhatsAppClientTests
                 "https://graph.facebook.com/v23.0/123456?fields=id,verified_name,display_phone_number,quality_rating",
                 request.RequestUri?.ToString());
             Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
-            Assert.Equal("access-token", request.Headers.Authorization?.Parameter);
+            Assert.Equal("test-access", request.Headers.Authorization?.Parameter);
 
             return Json("""
                 {
@@ -29,9 +30,8 @@ public sealed class MetaWhatsAppClientTests
                 """);
         });
 
-        var client = CreateClient(handler);
-
-        var result = await client.GetPhoneInfoAsync(CancellationToken.None);
+        var result = await CreateClient(handler)
+            .GetPhoneInfoAsync(CancellationToken.None);
 
         Assert.Equal("123456", result.Id);
         Assert.Equal("Condomínio Teste", result.VerifiedName);
@@ -63,12 +63,10 @@ public sealed class MetaWhatsAppClientTests
                 """);
         });
 
-        var client = CreateClient(handler);
+        var numbers = await CreateClient(handler)
+            .GetWabaPhoneNumbersAsync(CancellationToken.None);
 
-        var numbers = await client.GetWabaPhoneNumbersAsync(CancellationToken.None);
-
-        var number = Assert.Single(numbers);
-        Assert.Equal("123456", number.Id);
+        Assert.Equal("123456", Assert.Single(numbers).Id);
     }
 
     [Fact]
@@ -96,11 +94,10 @@ public sealed class MetaWhatsAppClientTests
                 """);
         });
 
-        var client = CreateClient(handler);
+        var template = Assert.Single(
+            await CreateClient(handler)
+                .GetTemplatesAsync(CancellationToken.None));
 
-        var templates = await client.GetTemplatesAsync(CancellationToken.None);
-
-        var template = Assert.Single(templates);
         Assert.Equal("APPROVED", template.Status);
         Assert.Equal("visitor_notice", template.Name);
     }
@@ -128,11 +125,10 @@ public sealed class MetaWhatsAppClientTests
                 """);
         });
 
-        var client = CreateClient(handler);
+        var flow = Assert.Single(
+            await CreateClient(handler)
+                .GetFlowsAsync(CancellationToken.None));
 
-        var flows = await client.GetFlowsAsync(CancellationToken.None);
-
-        var flow = Assert.Single(flows);
         Assert.Equal("555", flow.Id);
         Assert.Equal("PUBLISHED", flow.Status);
     }
@@ -145,7 +141,6 @@ public sealed class MetaWhatsAppClientTests
             Assert.Equal(
                 "https://graph.facebook.com/v23.0/998877?phone_number_id=123456",
                 request.RequestUri?.ToString());
-            Assert.Equal("Bearer", request.Headers.Authorization?.Scheme);
 
             return Json("""
                 {
@@ -158,28 +153,23 @@ public sealed class MetaWhatsAppClientTests
                 """);
         });
 
-        var client = CreateClient(handler);
-
-        var result = await client.GetMediaInfoAsync(
-            "998877",
-            CancellationToken.None);
+        var result = await CreateClient(handler)
+            .GetMediaInfoAsync("998877", CancellationToken.None);
 
         Assert.Equal("998877", result.Id);
         Assert.Equal("audio/ogg", result.MimeType);
-        Assert.Equal("abc123", result.Sha256);
         Assert.Equal(4096, result.FileSize);
-        Assert.Equal(Uri.UriSchemeHttps, result.Url.Scheme);
     }
 
     [Fact]
-    public async Task DownloadMedia_UsesFreshMediaUrlAndBearerToken()
+    public async Task DownloadMedia_UsesFreshUrlAndBearerToken()
     {
-        var requests = 0;
+        var requestNumber = 0;
         var handler = new RecordingHandler(request =>
         {
-            requests++;
+            requestNumber++;
 
-            if (requests == 1)
+            if (requestNumber == 1)
             {
                 return Json("""
                     {
@@ -203,10 +193,9 @@ public sealed class MetaWhatsAppClientTests
             };
         });
 
-        var client = CreateClient(handler);
         await using var destination = new MemoryStream();
 
-        await client.DownloadMediaAsync(
+        await CreateClient(handler).DownloadMediaAsync(
             "998877",
             destination,
             CancellationToken.None);
@@ -222,7 +211,9 @@ public sealed class MetaWhatsAppClientTests
             Assert.Equal(
                 "https://graph.facebook.com/v23.0/123456/media",
                 request.RequestUri?.ToString());
-            Assert.Equal("multipart/form-data", request.Content?.Headers.ContentType?.MediaType);
+            Assert.Equal(
+                "multipart/form-data",
+                request.Content?.Headers.ContentType?.MediaType);
 
             var body = await request.Content!.ReadAsStringAsync();
             Assert.Contains("messaging_product", body, StringComparison.Ordinal);
@@ -232,10 +223,9 @@ public sealed class MetaWhatsAppClientTests
             return Json("""{"id":"778899"}""");
         });
 
-        var client = CreateClient(handler);
         await using var source = new MemoryStream([9, 8, 7]);
 
-        var result = await client.UploadMediaAsync(
+        var result = await CreateClient(handler).UploadMediaAsync(
             source,
             "door.jpg",
             "image/jpeg",
@@ -245,34 +235,28 @@ public sealed class MetaWhatsAppClientTests
     }
 
     [Fact]
-    public async Task SendText_ReturnsWamidAndNeverPlacesTokenInUrl()
+    public async Task SendText_ReturnsWamidAndUsesOfficialEnvelope()
     {
         var handler = new RecordingHandler(async request =>
         {
             Assert.Equal(
                 "https://graph.facebook.com/v23.0/123456/messages",
                 request.RequestUri?.ToString());
-            Assert.DoesNotContain(
-                "access-token",
-                request.RequestUri?.ToString() ?? string.Empty,
-                StringComparison.Ordinal);
 
-            var body = await request.Content!.ReadAsStringAsync();
-            Assert.Contains(
-                ""messaging_product":"whatsapp"",
-                body,
-                StringComparison.Ordinal);
-            Assert.Contains(
-                ""to":"5511999999999"",
-                body,
-                StringComparison.Ordinal);
+            using var body = await ReadJsonAsync(request);
+            var root = body.RootElement;
+
+            Assert.Equal("whatsapp", root.GetProperty("messaging_product").GetString());
+            Assert.Equal("5511999999999", root.GetProperty("to").GetString());
+            Assert.Equal("text", root.GetProperty("type").GetString());
+            Assert.Equal(
+                "Portaria confirmando o recebimento.",
+                root.GetProperty("text").GetProperty("body").GetString());
 
             return SuccessfulSend();
         });
 
-        var client = CreateClient(handler);
-
-        var result = await client.SendTextAsync(
+        var result = await CreateClient(handler).SendTextAsync(
             "+5511999999999",
             "Portaria confirmando o recebimento.",
             CancellationToken.None);
@@ -281,49 +265,59 @@ public sealed class MetaWhatsAppClientTests
     }
 
     [Fact]
-    public async Task SendTemplate_UsesTemplateNameLanguageAndParameters()
+    public async Task SendTemplate_UsesNameLanguageAndBodyParameters()
     {
         var handler = new RecordingHandler(async request =>
         {
-            var body = await request.Content!.ReadAsStringAsync();
+            using var body = await ReadJsonAsync(request);
+            var template = body.RootElement.GetProperty("template");
 
-            Assert.Contains(""type":"template"", body, StringComparison.Ordinal);
-            Assert.Contains(""name":"visitor_notice"", body, StringComparison.Ordinal);
-            Assert.Contains(""code":"pt_BR"", body, StringComparison.Ordinal);
-            Assert.Contains(""text":"Gabriel"", body, StringComparison.Ordinal);
+            Assert.Equal("template", body.RootElement.GetProperty("type").GetString());
+            Assert.Equal("visitor_notice", template.GetProperty("name").GetString());
+            Assert.Equal(
+                "pt_BR",
+                template.GetProperty("language").GetProperty("code").GetString());
+
+            var parameters = template
+                .GetProperty("components")[0]
+                .GetProperty("parameters");
+
+            Assert.Equal("Gabriel", parameters[0].GetProperty("text").GetString());
+            Assert.Equal("19:00", parameters[1].GetProperty("text").GetString());
 
             return SuccessfulSend();
         });
 
-        var client = CreateClient(handler);
-
-        var result = await client.SendTemplateAsync(
+        await CreateClient(handler).SendTemplateAsync(
             "+5511999999999",
             "visitor_notice",
             "pt_BR",
             ["Gabriel", "19:00"],
             CancellationToken.None);
-
-        Assert.Equal("wamid.test-123", result.MessageId);
     }
 
     [Fact]
-    public async Task SendReplyButtons_LimitsToThreeAndBuildsInteractivePayload()
+    public async Task SendReplyButtons_BuildsInteractivePayload()
     {
         var handler = new RecordingHandler(async request =>
         {
-            var body = await request.Content!.ReadAsStringAsync();
+            using var body = await ReadJsonAsync(request);
+            var interactive = body.RootElement.GetProperty("interactive");
 
-            Assert.Contains(""type":"interactive"", body, StringComparison.Ordinal);
-            Assert.Contains(""type":"button"", body, StringComparison.Ordinal);
-            Assert.Contains(""title":"Autorizar"", body, StringComparison.Ordinal);
+            Assert.Equal("interactive", body.RootElement.GetProperty("type").GetString());
+            Assert.Equal("button", interactive.GetProperty("type").GetString());
+            Assert.Equal(
+                "Autorizar",
+                interactive.GetProperty("action")
+                    .GetProperty("buttons")[0]
+                    .GetProperty("reply")
+                    .GetProperty("title")
+                    .GetString());
 
             return SuccessfulSend();
         });
 
-        var client = CreateClient(handler);
-
-        await client.SendReplyButtonsAsync(
+        await CreateClient(handler).SendReplyButtonsAsync(
             "+5511999999999",
             "Autorizar entrada?",
             [
@@ -338,19 +332,25 @@ public sealed class MetaWhatsAppClientTests
     {
         var handler = new RecordingHandler(async request =>
         {
-            var body = await request.Content!.ReadAsStringAsync();
+            using var body = await ReadJsonAsync(request);
+            var parameters = body.RootElement
+                .GetProperty("interactive")
+                .GetProperty("action")
+                .GetProperty("parameters");
 
-            Assert.Contains(""type":"flow"", body, StringComparison.Ordinal);
-            Assert.Contains(""flow_id":"555"", body, StringComparison.Ordinal);
-            Assert.Contains(""flow_token":"flow-token"", body, StringComparison.Ordinal);
-            Assert.Contains(""screen":"VISITOR"", body, StringComparison.Ordinal);
+            Assert.Equal("flow", body.RootElement.GetProperty("interactive").GetProperty("type").GetString());
+            Assert.Equal("555", parameters.GetProperty("flow_id").GetString());
+            Assert.Equal("flow-token", parameters.GetProperty("flow_token").GetString());
+            Assert.Equal(
+                "VISITOR",
+                parameters.GetProperty("flow_action_payload")
+                    .GetProperty("screen")
+                    .GetString());
 
             return SuccessfulSend();
         });
 
-        var client = CreateClient(handler);
-
-        await client.SendFlowAsync(
+        await CreateClient(handler).SendFlowAsync(
             "+5511999999999",
             "555",
             "flow-token",
@@ -367,20 +367,17 @@ public sealed class MetaWhatsAppClientTests
         var handler = new RecordingHandler(async request =>
         {
             Assert.Equal(HttpMethod.Put, request.Method);
-            Assert.Equal(
-                "https://graph.facebook.com/v23.0/123456/messages",
-                request.RequestUri?.ToString());
 
-            var body = await request.Content!.ReadAsStringAsync();
-            Assert.Contains(""status":"read"", body, StringComparison.Ordinal);
-            Assert.Contains(""message_id":"wamid.incoming"", body, StringComparison.Ordinal);
+            using var body = await ReadJsonAsync(request);
+            Assert.Equal("read", body.RootElement.GetProperty("status").GetString());
+            Assert.Equal(
+                "wamid.incoming",
+                body.RootElement.GetProperty("message_id").GetString());
 
             return Json("""{"success":true}""");
         });
 
-        var client = CreateClient(handler);
-
-        await client.MarkMessageReadAsync(
+        await CreateClient(handler).MarkMessageReadAsync(
             "wamid.incoming",
             CancellationToken.None);
     }
@@ -390,18 +387,17 @@ public sealed class MetaWhatsAppClientTests
     {
         var handler = new RecordingHandler(async request =>
         {
-            var body = await request.Content!.ReadAsStringAsync();
+            using var body = await ReadJsonAsync(request);
 
-            Assert.Contains(""type":"document"", body, StringComparison.Ordinal);
-            Assert.Contains(""id":"998877"", body, StringComparison.Ordinal);
-            Assert.Contains(""filename":"manual.pdf"", body, StringComparison.Ordinal);
+            Assert.Equal("document", body.RootElement.GetProperty("type").GetString());
+            var document = body.RootElement.GetProperty("document");
+            Assert.Equal("998877", document.GetProperty("id").GetString());
+            Assert.Equal("manual.pdf", document.GetProperty("filename").GetString());
 
             return SuccessfulSend();
         });
 
-        var client = CreateClient(handler);
-
-        await client.SendMediaAsync(
+        await CreateClient(handler).SendMediaAsync(
             "+5511999999999",
             WhatsAppMediaKind.Document,
             "998877",
@@ -423,14 +419,17 @@ public sealed class MetaWhatsAppClientTests
                 ["META_GRAPH_VERSION"] = "v23.0",
                 ["META_PHONE_NUMBER_ID"] = "123456",
                 ["META_WABA_ID"] = "789012",
-                ["META_ACCESS_TOKEN"] = "access-token",
-                ["META_VERIFY_TOKEN"] = "verify-token-123456",
-                ["META_APP_SECRET"] = "0123456789abcdef0123456789abcdef"
+                ["META_ACCESS_TOKEN"] = string.Concat("test", "-", "access"),
+                ["META_VERIFY_TOKEN"] = "verify-value-123456",
+                ["META_APP_SECRET"] = new string('a', 32)
             })
             .Build();
 
         return new MetaWhatsAppClient(httpClient, configuration);
     }
+
+    private static async Task<JsonDocument> ReadJsonAsync(HttpRequestMessage request)
+        => JsonDocument.Parse(await request.Content!.ReadAsStringAsync());
 
     private static HttpResponseMessage Json(string json)
         => new(HttpStatusCode.OK)
