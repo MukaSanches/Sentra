@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Sentra.Application.Operations;
+using Sentra.Application.Security;
+using Sentra.Infrastructure.Operations;
 using Sentra.Infrastructure.Persistence;
+using Sentra.Infrastructure.Security;
 
 namespace Sentra.Infrastructure;
 
@@ -20,6 +24,9 @@ public static class DependencyInjection
                 options.UseNpgsql(
                     postgres,
                     npgsql => npgsql.MigrationsAssembly(typeof(SentraDbContext).Assembly.FullName)));
+
+            services.AddScoped<IOperationalDataService, OperationalDataService>();
+            services.AddScoped<IPermissionEvaluator, PermissionEvaluator>();
         }
 
         return services;

@@ -1,18 +1,24 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Sentra.Api.Endpoints;
 using Sentra.Api.Health;
 using Sentra.Api.Middleware;
 using Sentra.Api.Realtime;
+using Sentra.Api.Security;
 using Sentra.Application.Abstractions;
 using Sentra.Application.Services;
 using Sentra.Contracts.System;
+using Sentra.Domain.Access;
 using Sentra.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSentraInfrastructure(builder.Configuration);
 builder.Services.AddHealthChecks()
@@ -33,7 +39,6 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-var authentication = builder.Services.AddAuthentication();
 var authority = builder.Configuration["Authentication:Authority"]
     ?? builder.Configuration["AUTHORITY"];
 var audience = builder.Configuration["Authentication:Audience"]
@@ -41,18 +46,34 @@ var audience = builder.Configuration["Authentication:Audience"]
 
 if (!string.IsNullOrWhiteSpace(authority) && !string.IsNullOrWhiteSpace(audience))
 {
-    authentication.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-    {
-        options.Authority = authority;
-        options.Audience = audience;
-        options.RequireHttpsMetadata = true;
-    });
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.Authority = authority;
+            options.Audience = audience;
+            options.RequireHttpsMetadata = true;
+        });
+}
+else
+{
+    builder.Services.AddAuthentication();
 }
 
-builder.Services.AddAuthorization();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permissionCode in PermissionCodes.All)
+    {
+        options.AddPolicy(
+            permissionCode,
+            policy => policy.Requirements.Add(new PermissionRequirement(permissionCode)));
+    }
+});
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseRateLimiter();
 app.UseAuthentication();
@@ -68,7 +89,7 @@ app.MapGet("/", (IHostEnvironment environment) =>
         "SENTRA — Central Inteligente de Portaria",
         "1.0.0",
         environment.EnvironmentName,
-        "foundation"));
+        "m1-operations"));
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
@@ -77,6 +98,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 
 app.MapHub<OperationsHub>("/hubs/operations");
+app.MapOperationalEndpoints();
 
 app.Run();
 

@@ -3,6 +3,7 @@ namespace Sentra.Api.Middleware;
 public sealed class CorrelationIdMiddleware(RequestDelegate next)
 {
     private const string HeaderName = "X-Correlation-ID";
+    public const string ItemName = "CorrelationId";
 
     public async Task InvokeAsync(HttpContext context, ILogger<CorrelationIdMiddleware> logger)
     {
@@ -11,9 +12,13 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
                 ? incoming.ToString()
                 : Guid.NewGuid().ToString("N");
 
+        context.Items[ItemName] = correlationId;
         context.Response.Headers[HeaderName] = correlationId;
 
-        using (logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId }))
+        using (logger.BeginScope(new Dictionary<string, object>
+        {
+            ["CorrelationId"] = correlationId
+        }))
         {
             await next(context);
         }
