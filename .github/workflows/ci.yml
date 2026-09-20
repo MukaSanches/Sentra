@@ -39,6 +39,53 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: sentra-test-results
+          name: sentra-test-results-${{ github.run_id }}
           path: TestResults/**/*.trx
           if-no-files-found: error
+
+  database-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build-test
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sentra_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sentra_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_CONNECTION_STRING: "Host=localhost;Port=5432;Database=sentra_ci;Username=postgres;Password=postgres"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install EF tool
+        run: dotnet tool install --global dotnet-ef --version 10.0.12
+
+      - name: Restore infrastructure
+        run: dotnet restore src/Sentra.Infrastructure/Sentra.Infrastructure.csproj
+
+      - name: Build infrastructure
+        run: dotnet build src/Sentra.Infrastructure/Sentra.Infrastructure.csproj --configuration Release --no-restore
+
+      - name: Verify migration snapshot
+        run: dotnet ef migrations has-pending-model-changes --project src/Sentra.Infrastructure/Sentra.Infrastructure.csproj --configuration Release --no-build
+
+      - name: Apply migrations to clean PostgreSQL
+        run: dotnet ef database update --project src/Sentra.Infrastructure/Sentra.Infrastructure.csproj --configuration Release --no-build
