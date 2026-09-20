@@ -14,7 +14,9 @@ public sealed class SignalROperationsNotifier(IHubContext<OperationsHub> hubCont
         => hubContext.Clients.Group(OperationsHub.GroupName(condominiumId))
             .SendAsync(
                 "WhatsAppMessageReceived",
-                new { condominiumId, conversationId, messageId },
+                condominiumId,
+                conversationId,
+                messageId,
                 cancellationToken);
 
     public Task WhatsAppMessageStatusChangedAsync(
@@ -25,6 +27,8 @@ public sealed class SignalROperationsNotifier(IHubContext<OperationsHub> hubCont
         => hubContext.Clients.Group(OperationsHub.GroupName(condominiumId))
             .SendAsync(
                 "WhatsAppMessageStatusChanged",
-                new { condominiumId, conversationId, messageId },
+                condominiumId,
+                conversationId,
+                messageId,
                 cancellationToken);
 }
