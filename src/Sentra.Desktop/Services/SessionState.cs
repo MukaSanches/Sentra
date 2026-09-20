@@ -13,8 +13,7 @@ public sealed class SessionState
         {
             lock (_gate)
             {
-                return _login is not null &&
-                       _login.ExpiresAt > DateTimeOffset.UtcNow.AddSeconds(15);
+                return IsAuthenticatedUnsafe();
             }
         }
     }
@@ -25,7 +24,9 @@ public sealed class SessionState
         {
             lock (_gate)
             {
-                return IsAuthenticated ? _login!.AccessToken : null;
+                return IsAuthenticatedUnsafe()
+                    ? _login!.AccessToken
+                    : null;
             }
         }
     }
@@ -36,7 +37,9 @@ public sealed class SessionState
         {
             lock (_gate)
             {
-                return IsAuthenticated ? _login!.Employee : null;
+                return IsAuthenticatedUnsafe()
+                    ? _login!.Employee
+                    : null;
             }
         }
     }
@@ -47,7 +50,7 @@ public sealed class SessionState
         {
             lock (_gate)
             {
-                return IsAuthenticated
+                return IsAuthenticatedUnsafe()
                     ? _login!.Permissions
                     : Array.Empty<string>();
             }
@@ -71,4 +74,8 @@ public sealed class SessionState
             _login = null;
         }
     }
+
+    private bool IsAuthenticatedUnsafe()
+        => _login is not null &&
+           _login.ExpiresAt > DateTimeOffset.UtcNow.AddSeconds(15);
 }

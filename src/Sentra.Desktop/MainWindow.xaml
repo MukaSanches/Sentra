@@ -2,53 +2,105 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="SENTRA — Central Inteligente de Portaria"
-        Width="1120" Height="720" MinWidth="900" MinHeight="600"
-        Background="{StaticResource SentraSurfaceBrush}">
+        Width="1360"
+        Height="820"
+        MinWidth="1080"
+        MinHeight="680"
+        Background="{StaticResource SentraSurfaceBrush}"
+        Loaded="OnLoaded">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="72"/>
       <RowDefinition Height="*"/>
-      <RowDefinition Height="42"/>
+      <RowDefinition Height="38"/>
     </Grid.RowDefinitions>
+
     <Border Grid.Row="0" Background="{StaticResource SentraNavyBrush}">
       <Grid Margin="24,0">
         <StackPanel VerticalAlignment="Center">
-          <TextBlock Text="SENTRA" FontSize="24" FontWeight="SemiBold" Foreground="White"/>
-          <TextBlock Text="Central Inteligente de Portaria" FontSize="13" Foreground="#D6DEE5"/>
+          <TextBlock Text="SENTRA"
+                     FontSize="24"
+                     FontWeight="SemiBold"
+                     Foreground="White"/>
+          <TextBlock Text="Central Inteligente de Portaria"
+                     FontSize="13"
+                     Foreground="#D3DCE4"/>
         </StackPanel>
-        <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="#263B4F" CornerRadius="6" Padding="12,6">
-          <TextBlock Text="M0 • Fundação" Foreground="White"/>
-        </Border>
+
+        <StackPanel HorizontalAlignment="Right"
+                    VerticalAlignment="Center">
+          <TextBlock Text="{Binding CurrentTitle}"
+                     HorizontalAlignment="Right"
+                     FontWeight="SemiBold"
+                     Foreground="White"/>
+          <TextBlock Text="WhatsApp oficial • Meta Cloud API"
+                     HorizontalAlignment="Right"
+                     FontSize="12"
+                     Foreground="#B7C4CF"/>
+        </StackPanel>
       </Grid>
     </Border>
-    <Grid Grid.Row="1" Margin="24">
+
+    <Grid Grid.Row="1">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="2*"/>
+        <ColumnDefinition Width="226"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
-      <Border Grid.Column="0" Margin="0,0,16,0" Padding="24" Background="White" CornerRadius="8">
-        <StackPanel>
-          <TextBlock Text="Central operacional" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource SentraGraphiteBrush}"/>
-          <TextBlock Margin="0,8,0,24" Text="A estrutura base está instalada. As integrações reais serão ativadas conforme os marcos M1–M3." TextWrapping="Wrap" Foreground="#56616C"/>
-          <TextBlock Text="Nenhuma integração é exibida como conectada sem validação real." FontWeight="SemiBold" Foreground="{StaticResource SentraAmberBrush}"/>
-        </StackPanel>
+
+      <Border Grid.Column="0"
+              Background="{StaticResource SentraGraphiteBrush}">
+        <DockPanel Margin="12,18">
+          <StackPanel DockPanel.Dock="Bottom" Margin="12">
+            <TextBlock Text="SENTRA 1.0"
+                       Foreground="#ABB7C1"
+                       FontSize="11"/>
+            <TextBlock Text="Desenvolvido por Samuel Sanches"
+                       Foreground="#ABB7C1"
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Margin="0,4,0,0"/>
+          </StackPanel>
+
+          <StackPanel>
+            <TextBlock Text="OPERAÇÃO"
+                       Foreground="#83919C"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Margin="12,0,0,8"/>
+            <Button Style="{StaticResource SentraNavButton}"
+                    Content="Conversas"
+                    Command="{Binding ShowConversationsCommand}"/>
+            <Button Style="{StaticResource SentraNavButton}"
+                    Content="WhatsApp"
+                    Command="{Binding ShowWhatsAppCommand}"/>
+
+            <Separator Margin="6,14"
+                       Background="#3A4A57"/>
+
+            <TextBlock Text="SISTEMA"
+                       Foreground="#83919C"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       Margin="12,0,0,8"/>
+            <Button Style="{StaticResource SentraNavButton}"
+                    Content="Conexão e acesso"
+                    Command="{Binding ShowConnectionCommand}"/>
+          </StackPanel>
+        </DockPanel>
       </Border>
-      <StackPanel Grid.Column="1">
-        <Border Margin="0,0,0,12" Padding="18" Background="White" CornerRadius="8">
-          <StackPanel><TextBlock Text="Servidor" FontWeight="SemiBold"/><TextBlock Text="{Binding ServerStatus}" Margin="0,6,0,0" Foreground="{StaticResource SentraAmberBrush}"/></StackPanel>
-        </Border>
-        <Border Margin="0,0,0,12" Padding="18" Background="White" CornerRadius="8">
-          <StackPanel><TextBlock Text="WhatsApp" FontWeight="SemiBold"/><TextBlock Text="{Binding WhatsAppStatus}" Margin="0,6,0,0" Foreground="{StaticResource SentraAmberBrush}"/></StackPanel>
-        </Border>
-        <Border Padding="18" Background="White" CornerRadius="8">
-          <StackPanel><TextBlock Text="Inteligência" FontWeight="SemiBold"/><TextBlock Text="{Binding IntelligenceStatus}" Margin="0,6,0,0" Foreground="{StaticResource SentraAmberBrush}"/></StackPanel>
-        </Border>
-      </StackPanel>
+
+      <ContentControl Grid.Column="1"
+                      Margin="24"
+                      Content="{Binding CurrentPage}"/>
     </Grid>
-    <Border Grid.Row="2" Background="#E8ECEF">
+
+    <Border Grid.Row="2" Background="#E5E9EC">
       <Grid Margin="24,0">
-        <TextBlock VerticalAlignment="Center" Text="SENTRA 1.0.0"/>
-        <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Text="Desenvolvido por Samuel Sanches"/>
+        <TextBlock VerticalAlignment="Center"
+                   Text="SENTRA • Operação de portaria"/>
+        <TextBlock HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   Text="© 2026 Samuel Sanches"/>
       </Grid>
     </Border>
   </Grid>
