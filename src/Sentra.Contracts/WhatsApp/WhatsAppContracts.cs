@@ -88,7 +88,6 @@ public sealed record SendWhatsAppListRequest(
 public sealed record SendWhatsAppFlowRequest(
     Guid ClientRequestId,
     string FlowId,
-    string FlowToken,
     string CallToAction,
     string Body,
     string? Screen,

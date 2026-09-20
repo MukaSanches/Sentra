@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
@@ -485,6 +486,9 @@ public static class ConversationEndpoints
                 new { error = "Flow não está publicado na WABA configurada." });
         }
 
+        var flowToken = Convert.ToHexString(
+            RandomNumberGenerator.GetBytes(16));
+
         return await SendOutboundAsync(
             conversationId,
             request.ClientRequestId,
@@ -500,7 +504,7 @@ public static class ConversationEndpoints
                 client.SendFlowAsync(
                     recipient,
                     request.FlowId,
-                    request.FlowToken,
+                    flowToken,
                     request.CallToAction,
                     request.Body,
                     request.Screen,
