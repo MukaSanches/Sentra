@@ -116,11 +116,11 @@ internal static class MessagingModelConfiguration
             entity.Property(x => x.LastErrorCode).HasColumnName("last_error_code").HasMaxLength(96);
             entity.HasIndex(x => x.ExternalMessageId)
                 .IsUnique()
-                .HasFilter(""external_message_id" IS NOT NULL")
+                .HasFilter("\"external_message_id\" IS NOT NULL")
                 .HasDatabaseName("ux_messages_external_message_id");
             entity.HasIndex(x => x.ClientRequestId)
                 .IsUnique()
-                .HasFilter(""client_request_id" IS NOT NULL")
+                .HasFilter("\"client_request_id\" IS NOT NULL")
                 .HasDatabaseName("ux_messages_client_request_id");
             entity.HasIndex(x => new { x.ConversationId, x.OccurredAt })
                 .HasDatabaseName("ix_messages_conversation_occurred_at");
