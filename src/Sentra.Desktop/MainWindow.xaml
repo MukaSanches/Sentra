@@ -44,6 +44,7 @@
             <Button Style="{StaticResource SentraNavButton}" Content="Blocos" Command="{Binding ShowBlocksCommand}"/>
             <Button Style="{StaticResource SentraNavButton}" Content="Unidades" Command="{Binding ShowUnitsCommand}"/>
             <Button Style="{StaticResource SentraNavButton}" Content="Moradores" Command="{Binding ShowResidentsCommand}"/>
+            <Button Style="{StaticResource SentraNavButton}" Content="Conversas" Command="{Binding ShowConversationsCommand}"/>
             <Button Style="{StaticResource SentraNavButton}" Content="Usuários e permissões" Command="{Binding ShowUsersPermissionsCommand}"/>
             <Separator Margin="6,12" Background="#40505E"/>
             <Button Style="{StaticResource SentraNavButton}" Content="Configurações" Command="{Binding ShowConfigurationCommand}"/>

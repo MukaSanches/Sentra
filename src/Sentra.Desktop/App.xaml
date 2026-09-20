@@ -21,6 +21,9 @@
       <DataTemplate DataType="{x:Type vm:ResidentsViewModel}">
         <views:ResidentsView/>
       </DataTemplate>
+      <DataTemplate DataType="{x:Type vm:ConversationsViewModel}">
+        <views:ConversationsView/>
+      </DataTemplate>
       <DataTemplate DataType="{x:Type vm:UsersPermissionsViewModel}">
         <views:UsersPermissionsView/>
       </DataTemplate>

@@ -9,6 +9,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly BlocksViewModel _blocks;
     private readonly UnitsViewModel _units;
     private readonly ResidentsViewModel _residents;
+    private readonly ConversationsViewModel _conversations;
     private readonly UsersPermissionsViewModel _usersPermissions;
     private readonly ConfigurationViewModel _configuration;
 
@@ -17,6 +18,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         BlocksViewModel blocks,
         UnitsViewModel units,
         ResidentsViewModel residents,
+        ConversationsViewModel conversations,
         UsersPermissionsViewModel usersPermissions,
         ConfigurationViewModel configuration)
     {
@@ -24,6 +26,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _blocks = blocks;
         _units = units;
         _residents = residents;
+        _conversations = conversations;
         _usersPermissions = usersPermissions;
         _configuration = configuration;
         _currentPage = dashboard;
@@ -70,6 +73,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         CurrentPage = _residents;
         await _residents.LoadAsync();
+    }
+
+    [RelayCommand]
+    private async Task ShowConversationsAsync()
+    {
+        CurrentPage = _conversations;
+        await _conversations.LoadAsync();
     }
 
     [RelayCommand]

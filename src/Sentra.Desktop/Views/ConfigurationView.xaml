@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <ScrollViewer VerticalScrollBarVisibility="Auto">
-    <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+    <StackPanel MaxWidth="940" HorizontalAlignment="Left">
       <TextBlock Text="Configurações" FontSize="26" FontWeight="SemiBold"/>
       <TextBlock Text="Nenhum campo preenchido é tratado como conexão até um teste real responder."
                  Foreground="#596671" Margin="0,6,0,18"/>
@@ -12,47 +12,56 @@
           <TextBlock Text="Servidor SENTRA" FontSize="18" FontWeight="SemiBold"/>
           <TextBlock Text="URL da API" FontWeight="SemiBold" Margin="4,14,4,0"/>
           <TextBox Style="{StaticResource SentraTextBox}" Text="{Binding ApiBaseUrl, UpdateSourceTrigger=PropertyChanged}"/>
-          <TextBlock Text="ID do condomínio (após bootstrap)" FontWeight="SemiBold" Margin="4,8,4,0"/>
+          <TextBlock Text="ID do condomínio" FontWeight="SemiBold" Margin="4,8,4,0"/>
           <TextBox Style="{StaticResource SentraTextBox}" Text="{Binding CondominiumIdText, UpdateSourceTrigger=PropertyChanged}"/>
-
           <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
             <Button Style="{StaticResource SentraButton}" Content="Salvar" Command="{Binding SaveCommand}"/>
             <Button Style="{StaticResource SentraButton}" Content="Testar conexão real" Command="{Binding TestCommand}"/>
           </StackPanel>
-
-          <Grid Margin="4,14,4,0">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition/></Grid.ColumnDefinitions>
-            <TextBlock Text="Servidor"/>
-            <TextBlock Grid.Column="1" Text="{Binding ServerStatus}" FontWeight="SemiBold"/>
-            <TextBlock Grid.Row="1" Text="Autenticação" Margin="0,6,0,0"/>
-            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AuthenticationStatus}" FontWeight="SemiBold" Margin="0,6,0,0"/>
-            <TextBlock Grid.Row="2" Text="Setup" Margin="0,6,0,0"/>
-            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SetupStatus}" FontWeight="SemiBold" Margin="0,6,0,0"/>
-          </Grid>
+          <TextBlock Text="{Binding ServerStatus}" Margin="4,10,4,0" FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding AuthenticationStatus}" Margin="4,4"/>
+          <TextBlock Text="{Binding SetupStatus}" Margin="4,4"/>
         </StackPanel>
       </Border>
 
       <Border Style="{StaticResource SentraCard}">
         <StackPanel>
           <TextBlock Text="Configuração inicial" FontSize="18" FontWeight="SemiBold"/>
-          <TextBlock Text="Executa criação real do condomínio, administrador e papel Proprietário no backend."
-                     TextWrapping="Wrap" Foreground="#596671" Margin="0,6,0,12"/>
-          <TextBlock Text="Nome do condomínio" FontWeight="SemiBold" Margin="4,0"/>
+          <TextBlock Text="Nome do condomínio" FontWeight="SemiBold" Margin="4,12,4,0"/>
           <TextBox Style="{StaticResource SentraTextBox}" Text="{Binding CondominiumName, UpdateSourceTrigger=PropertyChanged}"/>
           <TextBlock Text="Nome do administrador" FontWeight="SemiBold" Margin="4,8,4,0"/>
           <TextBox Style="{StaticResource SentraTextBox}" Text="{Binding AdministratorName, UpdateSourceTrigger=PropertyChanged}"/>
           <Button HorizontalAlignment="Left" Style="{StaticResource SentraButton}"
                   Content="Inicializar no servidor" Command="{Binding BootstrapCommand}"/>
-          <TextBlock Text="A autenticação real precisa estar configurada antes do bootstrap."
-                     Foreground="{StaticResource SentraAmberBrush}" Margin="4,8,4,0"/>
         </StackPanel>
       </Border>
 
       <Border Style="{StaticResource SentraCard}">
         <StackPanel>
-          <TextBlock Text="Integrações futuras" FontSize="18" FontWeight="SemiBold"/>
-          <TextBlock Text="WhatsApp oficial: M2 — AGUARDANDO CONFIGURAÇÃO" Margin="0,10,0,0"/>
-          <TextBlock Text="Entendimento de mensagens: M3 — AGUARDANDO CONFIGURAÇÃO" Margin="0,6,0,0"/>
+          <TextBlock Text="WhatsApp Business Platform" FontSize="18" FontWeight="SemiBold"/>
+          <TextBlock Text="As chaves nunca são solicitadas neste computador. Configure-as apenas no servidor SENTRA."
+                     TextWrapping="Wrap" Foreground="#596671" Margin="0,6,0,12"/>
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="180"/><ColumnDefinition/></Grid.ColumnDefinitions>
+            <TextBlock Text="Estado"/>
+            <TextBlock Grid.Column="1" Text="{Binding WhatsAppStatus}" FontWeight="SemiBold"/>
+            <TextBlock Grid.Row="1" Text="Número" Margin="0,6,0,0"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding WhatsAppNumber}" Margin="0,6,0,0"/>
+            <TextBlock Grid.Row="2" Text="Webhook" Margin="0,6,0,0"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding WhatsAppWebhook}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+          </Grid>
+          <TextBlock Text="{Binding WhatsAppDetails}" Margin="0,12,0,0" TextWrapping="Wrap"/>
+          <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+            <Button Style="{StaticResource SentraButton}" Content="Verificar" Command="{Binding RefreshWhatsAppCommand}"/>
+            <Button Style="{StaticResource SentraButton}" Content="Validar e vincular" Command="{Binding ConfigureWhatsAppCommand}"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource SentraCard}">
+        <StackPanel>
+          <TextBlock Text="Entendimento de mensagens" FontSize="18" FontWeight="SemiBold"/>
+          <TextBlock Text="M3 — AGUARDANDO CONFIGURAÇÃO" Margin="0,10,0,0"/>
         </StackPanel>
       </Border>
 

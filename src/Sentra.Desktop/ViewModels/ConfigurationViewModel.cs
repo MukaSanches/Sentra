@@ -12,29 +12,18 @@ public sealed partial class ConfigurationViewModel(
     IAccessTokenProvider accessTokenProvider)
     : PageViewModel("Configurações")
 {
-    [ObservableProperty]
-    private string _apiBaseUrl = string.Empty;
-
-    [ObservableProperty]
-    private string _condominiumIdText = string.Empty;
-
-    [ObservableProperty]
-    private string _condominiumName = string.Empty;
-
-    [ObservableProperty]
-    private string _administratorName = string.Empty;
-
-    [ObservableProperty]
-    private string _serverStatus = "AGUARDANDO CONFIGURAÇÃO";
-
-    [ObservableProperty]
-    private string _authenticationStatus = "AGUARDANDO CONFIGURAÇÃO";
-
-    [ObservableProperty]
-    private string _setupStatus = "NÃO VERIFICADO";
-
-    [ObservableProperty]
-    private string _status = "Configure a URL real do backend SENTRA.";
+    [ObservableProperty] private string _apiBaseUrl = string.Empty;
+    [ObservableProperty] private string _condominiumIdText = string.Empty;
+    [ObservableProperty] private string _condominiumName = string.Empty;
+    [ObservableProperty] private string _administratorName = string.Empty;
+    [ObservableProperty] private string _serverStatus = "AGUARDANDO CONFIGURAÇÃO";
+    [ObservableProperty] private string _authenticationStatus = "AGUARDANDO CONFIGURAÇÃO";
+    [ObservableProperty] private string _setupStatus = "NÃO VERIFICADO";
+    [ObservableProperty] private string _whatsAppStatus = "AGUARDANDO CONFIGURAÇÃO";
+    [ObservableProperty] private string _whatsAppNumber = "—";
+    [ObservableProperty] private string _whatsAppWebhook = "—";
+    [ObservableProperty] private string _whatsAppDetails = "Credenciais da Meta ficam somente no servidor.";
+    [ObservableProperty] private string _status = "Configure a URL real do backend SENTRA.";
 
     public async Task LoadAsync()
     {
@@ -46,6 +35,9 @@ public sealed partial class ConfigurationViewModel(
         AuthenticationStatus = string.IsNullOrWhiteSpace(token)
             ? "AGUARDANDO CONFIGURAÇÃO"
             : "CREDENCIAL DE SESSÃO DISPONÍVEL";
+
+        if (settings.HasServerConfiguration && settings.CondominiumId.HasValue && !string.IsNullOrWhiteSpace(token))
+            await LoadWhatsAppStatusAsync();
     }
 
     [RelayCommand]
@@ -61,7 +53,6 @@ public sealed partial class ConfigurationViewModel(
                     Status = "ID do condomínio inválido.";
                     return;
                 }
-
                 condominiumId = parsed;
             }
 
@@ -78,7 +69,6 @@ public sealed partial class ConfigurationViewModel(
     private async Task TestAsync()
     {
         await SaveAsync();
-
         try
         {
             ServerStatus = await apiClient.IsServerAliveAsync() ? "ONLINE" : "INDISPONÍVEL";
@@ -92,6 +82,9 @@ public sealed partial class ConfigurationViewModel(
             var setup = await apiClient.GetSetupStatusAsync();
             SetupStatus = setup.IsInitialized ? "INICIALIZADO" : "CONFIGURAÇÃO INICIAL PENDENTE";
             Status = "Teste real concluído.";
+
+            if (setup.IsInitialized)
+                await LoadWhatsAppStatusAsync();
         }
         catch (Exception exception)
         {
@@ -124,5 +117,50 @@ public sealed partial class ConfigurationViewModel(
         {
             Status = DescribeError(exception);
         }
+    }
+
+    [RelayCommand]
+    private async Task ConfigureWhatsAppAsync()
+    {
+        try
+        {
+            var result = await apiClient.ConfigureWhatsAppAsync();
+            ApplyWhatsApp(result);
+            Status = result.State == "CONFIGURADO"
+                ? "WhatsApp validado na Meta e vinculado ao SENTRA."
+                : $"WhatsApp: {result.State}";
+        }
+        catch (Exception exception)
+        {
+            WhatsAppStatus = "ERRO";
+            Status = DescribeError(exception);
+        }
+    }
+
+    [RelayCommand]
+    private Task RefreshWhatsAppAsync() => LoadWhatsAppStatusAsync();
+
+    private async Task LoadWhatsAppStatusAsync()
+    {
+        try
+        {
+            var result = await apiClient.GetWhatsAppStatusAsync();
+            ApplyWhatsApp(result);
+        }
+        catch (Exception exception)
+        {
+            WhatsAppStatus = "NÃO VALIDADO";
+            WhatsAppDetails = DescribeError(exception);
+        }
+    }
+
+    private void ApplyWhatsApp(Sentra.Contracts.WhatsApp.WhatsAppConfigurationStatusResponse result)
+    {
+        WhatsAppStatus = result.State;
+        WhatsAppNumber = result.DisplayPhoneNumber ?? "—";
+        WhatsAppWebhook = result.WebhookCallbackPath;
+        WhatsAppDetails = result.MissingConfiguration.Count > 0
+            ? $"Faltando no servidor: {string.Join(", ", result.MissingConfiguration)}"
+            : $"WABA: {(result.WabaValidated ? "OK" : "falha")} • Número: {(result.PhoneValidated ? "OK" : "falha")} • Webhook subscription: {(result.AppSubscribed ? "OK" : "pendente")} • Templates aprovados: {result.ApprovedTemplates} • Flows: {result.Flows}";
     }
 }

@@ -24,11 +24,13 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<IDesktopSettingsService, JsonDesktopSettingsService>();
                 services.AddSingleton<IAccessTokenProvider, EnvironmentAccessTokenProvider>();
                 services.AddSingleton<ISentraApiClient, SentraApiClient>();
+                services.AddSingleton<ISentraRealtimeClient, SentraRealtimeClient>();
 
                 services.AddSingleton<DashboardViewModel>();
                 services.AddSingleton<BlocksViewModel>();
                 services.AddSingleton<UnitsViewModel>();
                 services.AddSingleton<ResidentsViewModel>();
+                services.AddSingleton<ConversationsViewModel>();
                 services.AddSingleton<UsersPermissionsViewModel>();
                 services.AddSingleton<ConfigurationViewModel>();
                 services.AddSingleton<MainWindowViewModel>();

@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Sentra.Contracts.Common;
 using Sentra.Contracts.Operations;
+using Sentra.Contracts.WhatsApp;
 
 namespace Sentra.Desktop.Services;
 
@@ -112,6 +113,80 @@ public sealed class SentraApiClient(
         request.Content = JsonContent.Create(new AssignEmployeeRoleRequest(roleId));
         using var response = await SendAsync(request, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    public Task<WhatsAppConfigurationStatusResponse> GetWhatsAppStatusAsync(
+        CancellationToken cancellationToken = default)
+        => GetForCondominiumAsync<WhatsAppConfigurationStatusResponse>(
+            "/whatsapp/status",
+            cancellationToken);
+
+    public Task<WhatsAppConfigurationStatusResponse> ConfigureWhatsAppAsync(
+        CancellationToken cancellationToken = default)
+        => PostEmptyForCondominiumAsync<WhatsAppConfigurationStatusResponse>(
+            "/whatsapp/configure",
+            cancellationToken);
+
+    public async Task<IReadOnlyList<WhatsAppTemplateResponse>> GetWhatsAppTemplatesAsync(
+        CancellationToken cancellationToken = default)
+        => await GetForCondominiumAsync<List<WhatsAppTemplateResponse>>(
+            "/whatsapp/templates",
+            cancellationToken);
+
+    public async Task<IReadOnlyList<WhatsAppFlowResponse>> GetWhatsAppFlowsAsync(
+        CancellationToken cancellationToken = default)
+        => await GetForCondominiumAsync<List<WhatsAppFlowResponse>>(
+            "/whatsapp/flows",
+            cancellationToken);
+
+    public Task<PagedResponse<WhatsAppConversationResponse>> GetWhatsAppConversationsAsync(
+        int page = 1,
+        int pageSize = 50,
+        CancellationToken cancellationToken = default)
+        => GetForCondominiumAsync<PagedResponse<WhatsAppConversationResponse>>(
+            $"/whatsapp/conversations?page={page}&pageSize={pageSize}",
+            cancellationToken);
+
+    public Task<PagedResponse<WhatsAppMessageResponse>> GetWhatsAppMessagesAsync(
+        Guid conversationId,
+        int page = 1,
+        int pageSize = 100,
+        CancellationToken cancellationToken = default)
+        => GetForCondominiumAsync<PagedResponse<WhatsAppMessageResponse>>(
+            $"/whatsapp/conversations/{conversationId:D}/messages?page={page}&pageSize={pageSize}",
+            cancellationToken);
+
+    public Task<WhatsAppSendResult> SendWhatsAppTextAsync(
+        SendWhatsAppTextRequest request,
+        CancellationToken cancellationToken = default)
+        => PostForCondominiumAsync<SendWhatsAppTextRequest, WhatsAppSendResult>(
+            "/whatsapp/send/text",
+            request,
+            cancellationToken);
+
+    public Task<WhatsAppSendResult> SendWhatsAppTemplateAsync(
+        SendWhatsAppTemplateRequest request,
+        CancellationToken cancellationToken = default)
+        => PostForCondominiumAsync<SendWhatsAppTemplateRequest, WhatsAppSendResult>(
+            "/whatsapp/send/template",
+            request,
+            cancellationToken);
+
+    private async Task<TResponse> PostEmptyForCondominiumAsync<TResponse>(
+        string path,
+        CancellationToken cancellationToken)
+    {
+        var settings = await settingsService.LoadAsync(cancellationToken);
+        var condominiumId = RequireCondominium(settings);
+        using var request = await CreateRequestAsync(
+            HttpMethod.Post,
+            $"/api/condominiums/{condominiumId:D}{path}",
+            true,
+            cancellationToken);
+        using var response = await SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken: cancellationToken)
+            ?? throw new InvalidOperationException("Resposta vazia ou inválida do servidor SENTRA.");
     }
 
     private async Task<T> GetForCondominiumAsync<T>(string path, CancellationToken cancellationToken)
