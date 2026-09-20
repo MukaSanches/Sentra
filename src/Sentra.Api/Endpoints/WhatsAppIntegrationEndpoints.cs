@@ -26,6 +26,16 @@ public static class WhatsAppIntegrationEndpoints
             VerifyAsync)
             .RequireAuthorization(PermissionCatalog.IntegrationsManage);
 
+        endpoints.MapGet(
+            "/api/v1/integrations/whatsapp/templates",
+            GetTemplatesAsync)
+            .RequireAuthorization(PermissionCatalog.IntegrationsManage);
+
+        endpoints.MapGet(
+            "/api/v1/integrations/whatsapp/flows",
+            GetFlowsAsync)
+            .RequireAuthorization(PermissionCatalog.IntegrationsManage);
+
         return endpoints;
     }
 
@@ -67,6 +77,58 @@ public static class WhatsAppIntegrationEndpoints
                 integration.LastErrorCode));
     }
 
+    private static async Task<IResult> GetTemplatesAsync(
+        ClaimsPrincipal user,
+        SentraDbContext db,
+        IWhatsAppClient client,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetCondominiumId(user, out var condominiumId))
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!await IsConnectedAsync(db, condominiumId, cancellationToken))
+        {
+            return Results.Conflict(new { error = "WhatsApp ainda não foi validado." });
+        }
+
+        var templates = await client.GetTemplatesAsync(cancellationToken);
+
+        return Results.Ok(
+            templates.Select(item => new WhatsAppTemplateResponse(
+                item.Id,
+                item.Name,
+                item.Language,
+                item.Status,
+                item.Category)));
+    }
+
+    private static async Task<IResult> GetFlowsAsync(
+        ClaimsPrincipal user,
+        SentraDbContext db,
+        IWhatsAppClient client,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetCondominiumId(user, out var condominiumId))
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!await IsConnectedAsync(db, condominiumId, cancellationToken))
+        {
+            return Results.Conflict(new { error = "WhatsApp ainda não foi validado." });
+        }
+
+        var flows = await client.GetFlowsAsync(cancellationToken);
+
+        return Results.Ok(
+            flows.Select(item => new WhatsAppFlowResponse(
+                item.Id,
+                item.Name,
+                item.Status)));
+    }
+
     private static async Task<IResult> VerifyAsync(
         ClaimsPrincipal user,
         HttpContext httpContext,
@@ -98,7 +160,18 @@ public static class WhatsAppIntegrationEndpoints
         try
         {
             var info = await client.GetPhoneInfoAsync(cancellationToken);
-            await client.SubscribeWabaAsync(cancellationToken);
+            var wabaNumbers = await client.GetWabaPhoneNumbersAsync(cancellationToken);
+
+            if (!wabaNumbers.Any(item =>
+                    string.Equals(item.Id, info.Id, StringComparison.Ordinal)))
+            {
+                return Results.Conflict(
+                    new
+                    {
+                        error =
+                            "O Phone Number ID configurado não pertence à WABA configurada. Corrija META_PHONE_NUMBER_ID e META_WABA_ID antes de continuar."
+                    });
+            }
 
             if (existing is not null &&
                 !string.Equals(
@@ -110,9 +183,19 @@ public static class WhatsAppIntegrationEndpoints
                     new
                     {
                         error =
-                            "O condomínio já está vinculado a outro Phone Number ID. A troca deve ser feita por uma operação administrativa explícita."
+                            "O condomínio já está vinculado a outro Phone Number ID. A troca exige operação administrativa explícita."
                     });
             }
+
+            await client.SubscribeWabaAsync(cancellationToken);
+
+            var templates = await client.GetTemplatesAsync(cancellationToken);
+            var flows = await client.GetFlowsAsync(cancellationToken);
+
+            var approvedTemplateCount = templates.Count(item =>
+                string.Equals(item.Status, "APPROVED", StringComparison.OrdinalIgnoreCase));
+            var publishedFlowCount = flows.Count(item =>
+                string.Equals(item.Status, "PUBLISHED", StringComparison.OrdinalIgnoreCase));
 
             var integration = existing ??
                 new Integration(
@@ -127,9 +210,7 @@ public static class WhatsAppIntegrationEndpoints
             }
 
             var verifiedAt = clock.UtcNow;
-            integration.MarkConnected(
-                info.VerifiedName,
-                verifiedAt);
+            integration.MarkConnected(info.VerifiedName, verifiedAt);
 
             db.AuditEvents.Add(
                 new AuditEvent(
@@ -151,6 +232,8 @@ public static class WhatsAppIntegrationEndpoints
                     info.VerifiedName,
                     info.DisplayPhoneNumber,
                     info.QualityRating,
+                    approvedTemplateCount,
+                    publishedFlowCount,
                     verifiedAt));
         }
         catch (OperationCanceledException)
@@ -167,11 +250,15 @@ public static class WhatsAppIntegrationEndpoints
                 title: "Não foi possível verificar o WhatsApp",
                 detail: "A Meta não respondeu dentro do tempo esperado.");
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException exception)
         {
             if (existing is not null)
             {
-                existing.MarkDegraded("meta_request_failed", clock.UtcNow);
+                existing.MarkDegraded(
+                    exception.StatusCode is null
+                        ? "meta_transport_failed"
+                        : $"meta_http_{(int)exception.StatusCode.Value}",
+                    clock.UtcNow);
                 await db.SaveChangesAsync(CancellationToken.None);
             }
 
@@ -181,6 +268,17 @@ public static class WhatsAppIntegrationEndpoints
                 detail: "A API oficial da Meta recusou ou não concluiu a solicitação.");
         }
     }
+
+    private static Task<bool> IsConnectedAsync(
+        SentraDbContext db,
+        Guid condominiumId,
+        CancellationToken cancellationToken)
+        => db.Integrations.AsNoTracking().AnyAsync(
+            item =>
+                item.CondominiumId == condominiumId &&
+                item.Kind == IntegrationKind.WhatsApp &&
+                item.Status == IntegrationStatus.Connected,
+            cancellationToken);
 
     private static bool TryGetCondominiumId(
         ClaimsPrincipal user,
