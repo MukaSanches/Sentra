@@ -192,6 +192,25 @@ public static class ConversationEndpoints
             message.MarkAccepted(sent.MessageId, acceptedAt);
             conversation.RegisterMessage(acceptedAt);
 
+            // Persist the provider message id before reconciling statuses.
+            // If a status webhook raced ahead of this HTTP response, its
+            // durable status event can now be applied without losing state.
+            await db.SaveChangesAsync(cancellationToken);
+
+            var priorStatuses = await db.MessageStatusEvents
+                .AsNoTracking()
+                .Where(item => item.ExternalMessageId == sent.MessageId)
+                .OrderBy(item => item.OccurredAt)
+                .ToListAsync(cancellationToken);
+
+            foreach (var status in priorStatuses)
+            {
+                message.ApplyDeliveryStatus(
+                    status.Status,
+                    status.OccurredAt,
+                    status.ErrorCode);
+            }
+
             db.AuditEvents.Add(
                 new AuditEvent(
                     "conversation.whatsapp.message.sent",
