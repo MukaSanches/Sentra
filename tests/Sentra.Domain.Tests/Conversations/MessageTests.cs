@@ -31,6 +31,31 @@ public sealed class MessageTests
     }
 
     [Fact]
+    public void DeliveryStatus_DoesNotRegressEvenWithLaterTimestamp()
+    {
+        var occurredAt = DateTimeOffset.UtcNow;
+        var message = Message.CreateOutboundPending(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "Teste",
+            occurredAt);
+
+        message.MarkAccepted("wamid.1", occurredAt.AddSeconds(1));
+        message.ApplyDeliveryStatus(
+            MessageDeliveryStatus.Delivered,
+            occurredAt.AddSeconds(2));
+
+        var applied = message.ApplyDeliveryStatus(
+            MessageDeliveryStatus.Sent,
+            occurredAt.AddSeconds(3));
+
+        Assert.False(applied);
+        Assert.Equal(
+            MessageDeliveryStatus.Delivered,
+            message.DeliveryStatus);
+    }
+
+    [Fact]
     public void WebhookEvent_BecomesDeadLetterAtMaxAttempts()
     {
         var now = DateTimeOffset.UtcNow;
