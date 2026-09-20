@@ -25,7 +25,7 @@ public sealed class SentraApiClientTests
             new FixedSettingsService(new DesktopSettings("https://sentra.example.test", condominiumId)),
             new FixedTokenProvider("token-value"));
 
-        var result = await client.GetBlocksAsync();
+        var result = await client.GetBlocksAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Empty(result.Items);
         Assert.Equal(
@@ -44,7 +44,7 @@ public sealed class SentraApiClientTests
             new FixedSettingsService(new DesktopSettings("https://sentra.example.test", Guid.NewGuid())),
             new FixedTokenProvider(null));
 
-        var exception = await Assert.ThrowsAsync<SentraApiException>(() => client.GetBlocksAsync());
+        var exception = await Assert.ThrowsAsync<SentraApiException>(() => client.GetBlocksAsync(cancellationToken: TestContext.Current.CancellationToken));
 
         Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
         Assert.Contains("Sessão", exception.Message, StringComparison.Ordinal);

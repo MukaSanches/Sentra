@@ -16,11 +16,11 @@ public sealed class JsonDesktopSettingsServiceTests
             var service = new JsonDesktopSettingsService(path);
             var expected = new DesktopSettings("https://sentra.example.test", Guid.NewGuid());
 
-            await service.SaveAsync(expected);
-            var actual = await service.LoadAsync();
+            await service.SaveAsync(expected, TestContext.Current.CancellationToken);
+            var actual = await service.LoadAsync(TestContext.Current.CancellationToken);
 
             Assert.Equal(expected, actual);
-            var json = await File.ReadAllTextAsync(path);
+            var json = await File.ReadAllTextAsync(path, TestContext.Current.CancellationToken);
             Assert.DoesNotContain("token", json, StringComparison.OrdinalIgnoreCase);
         }
         finally
@@ -39,6 +39,6 @@ public sealed class JsonDesktopSettingsServiceTests
         var service = new JsonDesktopSettingsService(path);
 
         await Assert.ThrowsAsync<ArgumentException>(
-            () => service.SaveAsync(new DesktopSettings("file:///tmp/sentra", Guid.NewGuid())));
+            () => service.SaveAsync(new DesktopSettings("file:///tmp/sentra", Guid.NewGuid()), TestContext.Current.CancellationToken));
     }
 }
