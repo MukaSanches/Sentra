@@ -46,14 +46,12 @@ public sealed class ResidentPhone : AuditedEntityBase
 
     private static string NormalizeE164(string value)
     {
-        var normalized = Guard.Required(value, nameof(value), 16);
+        var normalized = value?.Trim();
 
-        if (normalized[0] != '+' || normalized.Length is < 9 or > 16)
-        {
-            throw new ArgumentException("Phone number must be in E.164 format.", nameof(value));
-        }
-
-        if (normalized.Skip(1).Any(character => character is < '0' or > '9'))
+        if (string.IsNullOrWhiteSpace(normalized)
+            || normalized.Length is < 9 or > 16
+            || normalized[0] != '+'
+            || normalized.Skip(1).Any(character => character is < '0' or > '9'))
         {
             throw new ArgumentException("Phone number must be in E.164 format.", nameof(value));
         }
