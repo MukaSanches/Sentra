@@ -4,9 +4,17 @@ namespace Sentra.Desktop;
 
 public partial class MainWindow : System.Windows.Window
 {
-    public MainWindow()
+    public MainWindow(MainWindowViewModel viewModel)
     {
         InitializeComponent();
-        DataContext = new MainWindowViewModel();
+        DataContext = viewModel;
+    }
+
+    private void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.InitializeCommand.Execute(null);
+        }
     }
 }

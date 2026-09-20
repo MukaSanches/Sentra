@@ -6,10 +6,61 @@
   <Color x:Key="SentraGreen">#2E7D5B</Color>
   <Color x:Key="SentraAmber">#A86F13</Color>
   <Color x:Key="SentraRed">#A53A3A</Color>
+
   <SolidColorBrush x:Key="SentraNavyBrush" Color="{StaticResource SentraNavy}"/>
   <SolidColorBrush x:Key="SentraGraphiteBrush" Color="{StaticResource SentraGraphite}"/>
   <SolidColorBrush x:Key="SentraSurfaceBrush" Color="{StaticResource SentraSurface}"/>
   <SolidColorBrush x:Key="SentraGreenBrush" Color="{StaticResource SentraGreen}"/>
   <SolidColorBrush x:Key="SentraAmberBrush" Color="{StaticResource SentraAmber}"/>
   <SolidColorBrush x:Key="SentraRedBrush" Color="{StaticResource SentraRed}"/>
+
+  <Style x:Key="SentraButton" TargetType="Button">
+    <Setter Property="Padding" Value="14,9"/>
+    <Setter Property="Margin" Value="4"/>
+    <Setter Property="MinHeight" Value="38"/>
+    <Setter Property="Background" Value="{StaticResource SentraNavyBrush}"/>
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Cursor" Value="Hand"/>
+  </Style>
+
+  <Style x:Key="SentraNavButton" TargetType="Button" BasedOn="{StaticResource SentraButton}">
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    <Setter Property="Margin" Value="0,2"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="Padding" Value="14,11"/>
+  </Style>
+
+  <Style x:Key="SentraTextBox" TargetType="TextBox">
+    <Setter Property="MinHeight" Value="38"/>
+    <Setter Property="Padding" Value="10,7"/>
+    <Setter Property="Margin" Value="4"/>
+    <Setter Property="BorderBrush" Value="#BCC5CC"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+  </Style>
+
+  <Style x:Key="SentraComboBox" TargetType="ComboBox">
+    <Setter Property="MinHeight" Value="38"/>
+    <Setter Property="Margin" Value="4"/>
+    <Setter Property="Padding" Value="8,5"/>
+  </Style>
+
+  <Style x:Key="SentraCard" TargetType="Border">
+    <Setter Property="Background" Value="White"/>
+    <Setter Property="CornerRadius" Value="8"/>
+    <Setter Property="Padding" Value="18"/>
+    <Setter Property="Margin" Value="0,0,12,12"/>
+  </Style>
+
+  <Style TargetType="DataGrid">
+    <Setter Property="AutoGenerateColumns" Value="False"/>
+    <Setter Property="CanUserAddRows" Value="False"/>
+    <Setter Property="HeadersVisibility" Value="Column"/>
+    <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+    <Setter Property="BorderBrush" Value="#D9DEE2"/>
+    <Setter Property="RowHeight" Value="38"/>
+    <Setter Property="ColumnHeaderHeight" Value="40"/>
+  </Style>
 </ResourceDictionary>

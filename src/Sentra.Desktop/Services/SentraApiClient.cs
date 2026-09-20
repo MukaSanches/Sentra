@@ -16,7 +16,7 @@ public sealed class SentraApiClient(
     {
         try
         {
-            using var request = await CreateRequestAsync(HttpMethod.Get, "/health/live", requireCondominium: false, cancellationToken);
+            using var request = await CreateRequestAsync(HttpMethod.Get, "/health/live", false, cancellationToken);
             using var response = await SendAsync(request, cancellationToken);
             return response.IsSuccessStatusCode;
         }
@@ -31,32 +31,27 @@ public sealed class SentraApiClient(
     }
 
     public Task<SetupStatusResponse> GetSetupStatusAsync(CancellationToken cancellationToken = default)
-        => GetAsync<SetupStatusResponse>("/api/setup/status", requireCondominium: false, cancellationToken);
+        => GetAsync<SetupStatusResponse>("/api/setup/status", false, cancellationToken);
 
-    public Task<PagedResponse<BlockResponse>> GetBlocksAsync(
-        int page = 1,
-        int pageSize = 50,
+    public Task<CondominiumResponse> BootstrapAsync(
+        BootstrapRequest request,
         CancellationToken cancellationToken = default)
-        => GetForCondominiumAsync<PagedResponse<BlockResponse>>(
-            $"/blocks?page={page}&pageSize={pageSize}",
+        => PostAsync<BootstrapRequest, CondominiumResponse>(
+            "/api/setup/bootstrap",
+            request,
+            requireCondominium: false,
             cancellationToken);
 
-    public Task<BlockResponse> CreateBlockAsync(
-        CreateBlockRequest request,
-        CancellationToken cancellationToken = default)
+    public Task<PagedResponse<BlockResponse>> GetBlocksAsync(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+        => GetForCondominiumAsync<PagedResponse<BlockResponse>>($"/blocks?page={page}&pageSize={pageSize}", cancellationToken);
+
+    public Task<BlockResponse> CreateBlockAsync(CreateBlockRequest request, CancellationToken cancellationToken = default)
         => PostForCondominiumAsync<CreateBlockRequest, BlockResponse>("/blocks", request, cancellationToken);
 
-    public Task<PagedResponse<UnitResponse>> GetUnitsAsync(
-        int page = 1,
-        int pageSize = 50,
-        CancellationToken cancellationToken = default)
-        => GetForCondominiumAsync<PagedResponse<UnitResponse>>(
-            $"/units?page={page}&pageSize={pageSize}",
-            cancellationToken);
+    public Task<PagedResponse<UnitResponse>> GetUnitsAsync(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+        => GetForCondominiumAsync<PagedResponse<UnitResponse>>($"/units?page={page}&pageSize={pageSize}", cancellationToken);
 
-    public Task<UnitResponse> CreateUnitAsync(
-        CreateUnitRequest request,
-        CancellationToken cancellationToken = default)
+    public Task<UnitResponse> CreateUnitAsync(CreateUnitRequest request, CancellationToken cancellationToken = default)
         => PostForCondominiumAsync<CreateUnitRequest, UnitResponse>("/units", request, cancellationToken);
 
     public Task<PagedResponse<ResidentResponse>> GetResidentsAsync(
@@ -73,34 +68,56 @@ public sealed class SentraApiClient(
             cancellationToken);
     }
 
-    public Task<ResidentResponse> CreateResidentAsync(
-        CreateResidentRequest request,
-        CancellationToken cancellationToken = default)
+    public Task<ResidentResponse> CreateResidentAsync(CreateResidentRequest request, CancellationToken cancellationToken = default)
         => PostForCondominiumAsync<CreateResidentRequest, ResidentResponse>("/residents", request, cancellationToken);
 
-    public Task<PagedResponse<EmployeeResponse>> GetEmployeesAsync(
-        int page = 1,
-        int pageSize = 50,
-        CancellationToken cancellationToken = default)
-        => GetForCondominiumAsync<PagedResponse<EmployeeResponse>>(
-            $"/employees?page={page}&pageSize={pageSize}",
-            cancellationToken);
+    public Task<PagedResponse<EmployeeResponse>> GetEmployeesAsync(int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+        => GetForCondominiumAsync<PagedResponse<EmployeeResponse>>($"/employees?page={page}&pageSize={pageSize}", cancellationToken);
 
     public async Task<IReadOnlyList<RoleResponse>> GetRolesAsync(CancellationToken cancellationToken = default)
         => await GetForCondominiumAsync<List<RoleResponse>>("/roles", cancellationToken);
 
-    public Task<RoleResponse> CreateRoleAsync(
-        CreateRoleRequest request,
-        CancellationToken cancellationToken = default)
+    public Task<RoleResponse> CreateRoleAsync(CreateRoleRequest request, CancellationToken cancellationToken = default)
         => PostForCondominiumAsync<CreateRoleRequest, RoleResponse>("/roles", request, cancellationToken);
 
-    private async Task<T> GetForCondominiumAsync<T>(
-        string path,
-        CancellationToken cancellationToken)
+    public async Task SetRolePermissionsAsync(
+        Guid roleId,
+        IReadOnlyList<string> permissionCodes,
+        CancellationToken cancellationToken = default)
     {
         var settings = await settingsService.LoadAsync(cancellationToken);
-        var condominiumId = settings.CondominiumId
-            ?? throw new InvalidOperationException("Condomínio ainda não configurado no cliente.");
+        var condominiumId = RequireCondominium(settings);
+        using var request = await CreateRequestAsync(
+            HttpMethod.Put,
+            $"/api/condominiums/{condominiumId:D}/roles/{roleId:D}/permissions",
+            true,
+            cancellationToken);
+        request.Content = JsonContent.Create(new SetRolePermissionsRequest(permissionCodes));
+        using var response = await SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    public async Task AssignEmployeeRoleAsync(
+        Guid employeeId,
+        Guid roleId,
+        CancellationToken cancellationToken = default)
+    {
+        var settings = await settingsService.LoadAsync(cancellationToken);
+        var condominiumId = RequireCondominium(settings);
+        using var request = await CreateRequestAsync(
+            HttpMethod.Post,
+            $"/api/condominiums/{condominiumId:D}/employees/{employeeId:D}/roles",
+            true,
+            cancellationToken);
+        request.Content = JsonContent.Create(new AssignEmployeeRoleRequest(roleId));
+        using var response = await SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
+    private async Task<T> GetForCondominiumAsync<T>(string path, CancellationToken cancellationToken)
+    {
+        var settings = await settingsService.LoadAsync(cancellationToken);
+        var condominiumId = RequireCondominium(settings);
         return await GetAsync<T>($"/api/condominiums/{condominiumId:D}{path}", true, cancellationToken);
     }
 
@@ -110,14 +127,21 @@ public sealed class SentraApiClient(
         CancellationToken cancellationToken)
     {
         var settings = await settingsService.LoadAsync(cancellationToken);
-        var condominiumId = settings.CondominiumId
-            ?? throw new InvalidOperationException("Condomínio ainda não configurado no cliente.");
-
-        using var request = await CreateRequestAsync(
-            HttpMethod.Post,
+        var condominiumId = RequireCondominium(settings);
+        return await PostAsync<TRequest, TResponse>(
             $"/api/condominiums/{condominiumId:D}{path}",
-            requireCondominium: true,
+            payload,
+            true,
             cancellationToken);
+    }
+
+    private async Task<TResponse> PostAsync<TRequest, TResponse>(
+        string path,
+        TRequest payload,
+        bool requireCondominium,
+        CancellationToken cancellationToken)
+    {
+        using var request = await CreateRequestAsync(HttpMethod.Post, path, requireCondominium, cancellationToken);
         request.Content = JsonContent.Create(payload);
         using var response = await SendAsync(request, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
@@ -125,10 +149,7 @@ public sealed class SentraApiClient(
             ?? throw new InvalidOperationException("Resposta vazia ou inválida do servidor SENTRA.");
     }
 
-    private async Task<T> GetAsync<T>(
-        string path,
-        bool requireCondominium,
-        CancellationToken cancellationToken)
+    private async Task<T> GetAsync<T>(string path, bool requireCondominium, CancellationToken cancellationToken)
     {
         using var request = await CreateRequestAsync(HttpMethod.Get, path, requireCondominium, cancellationToken);
         using var response = await SendAsync(request, cancellationToken);
@@ -166,17 +187,13 @@ public sealed class SentraApiClient(
         return request;
     }
 
-    private async Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request,
-        CancellationToken cancellationToken)
+    private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var client = httpClientFactory.CreateClient("SENTRA");
         return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
     }
 
-    private static async Task EnsureSuccessAsync(
-        HttpResponseMessage response,
-        CancellationToken cancellationToken)
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         if (response.IsSuccessStatusCode)
         {
@@ -189,6 +206,7 @@ public sealed class SentraApiClient(
             HttpStatusCode.Unauthorized => "Sessão não autenticada ou expirada.",
             HttpStatusCode.Forbidden => "Usuário sem permissão para esta operação.",
             HttpStatusCode.NotFound => "Recurso não encontrado no SENTRA.",
+            HttpStatusCode.Conflict => string.IsNullOrWhiteSpace(body) ? "Conflito de dados no servidor." : body,
             _ => string.IsNullOrWhiteSpace(body)
                 ? $"Servidor SENTRA retornou HTTP {(int)response.StatusCode}."
                 : body
@@ -196,4 +214,8 @@ public sealed class SentraApiClient(
 
         throw new SentraApiException(response.StatusCode, message);
     }
+
+    private static Guid RequireCondominium(Models.DesktopSettings settings)
+        => settings.CondominiumId
+            ?? throw new InvalidOperationException("Condomínio ainda não configurado no cliente.");
 }

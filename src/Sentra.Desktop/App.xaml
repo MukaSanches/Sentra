@@ -1,12 +1,32 @@
 <Application x:Class="Sentra.Desktop.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
+             xmlns:vm="clr-namespace:Sentra.Desktop.ViewModels"
+             xmlns:views="clr-namespace:Sentra.Desktop.Views">
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Themes/Branding.xaml"/>
       </ResourceDictionary.MergedDictionaries>
+
+      <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+        <views:DashboardView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type vm:BlocksViewModel}">
+        <views:BlocksView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type vm:UnitsViewModel}">
+        <views:UnitsView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type vm:ResidentsViewModel}">
+        <views:ResidentsView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type vm:UsersPermissionsViewModel}">
+        <views:UsersPermissionsView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type vm:ConfigurationViewModel}">
+        <views:ConfigurationView/>
+      </DataTemplate>
     </ResourceDictionary>
   </Application.Resources>
 </Application>
