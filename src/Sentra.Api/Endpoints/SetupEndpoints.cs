@@ -39,7 +39,8 @@ public static class SetupEndpoints
     {
         var configuredToken = configuration["SENTRA_BOOTSTRAP_TOKEN"];
 
-        if (string.IsNullOrWhiteSpace(configuredToken) || configuredToken.Length < 32)
+        if (string.IsNullOrWhiteSpace(configuredToken) ||
+            configuredToken.Length < 32)
         {
             return Results.Problem(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
@@ -47,14 +48,16 @@ public static class SetupEndpoints
                 detail: "Configure SENTRA_BOOTSTRAP_TOKEN com pelo menos 32 caracteres no servidor.");
         }
 
-        var suppliedToken = httpRequest.Headers["X-Sentra-Bootstrap-Token"].ToString();
+        var suppliedToken =
+            httpRequest.Headers["X-Sentra-Bootstrap-Token"].ToString();
 
         if (!SecureEquals(configuredToken, suppliedToken))
         {
             return Results.Unauthorized();
         }
 
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 12)
+        if (string.IsNullOrWhiteSpace(request.Password) ||
+            request.Password.Length < 12)
         {
             return Results.BadRequest(
                 new { error = "A senha deve possuir pelo menos 12 caracteres." });
@@ -76,9 +79,32 @@ public static class SetupEndpoints
             "Administrador",
             "Perfil inicial com permissões administrativas.");
 
-        var permissions = PermissionCatalog.All
-            .Select(definition => new Permission(definition.Code, definition.Description))
+        var codes = PermissionCatalog.All
+            .Select(definition => definition.Code)
             .ToArray();
+
+        var existingPermissions = await db.Permissions
+            .Where(permission => codes.Contains(permission.Code))
+            .ToListAsync(cancellationToken);
+
+        var byCode = existingPermissions.ToDictionary(
+            permission => permission.Code,
+            StringComparer.Ordinal);
+
+        var permissions = new List<Permission>();
+
+        foreach (var definition in PermissionCatalog.All)
+        {
+            if (!byCode.TryGetValue(definition.Code, out var permission))
+            {
+                permission = new Permission(
+                    definition.Code,
+                    definition.Description);
+                db.Permissions.Add(permission);
+            }
+
+            permissions.Add(permission);
+        }
 
         var passwordHash = passwordHashService.Hash(request.Password);
         var administrator = new Employee(
@@ -90,7 +116,6 @@ public static class SetupEndpoints
 
         db.Condominiums.Add(condominium);
         db.Roles.Add(adminRole);
-        db.Permissions.AddRange(permissions);
         db.RolePermissions.AddRange(
             permissions.Select(permission =>
                 new RolePermission(adminRole.Id, permission.Id)));
