@@ -28,8 +28,8 @@ public sealed class MetaWhatsAppClientTests
         Assert.Equal("https://graph.facebook.com/v99.0/phone-1/messages", handler.Uri?.ToString());
         Assert.Equal("Bearer", handler.AuthorizationScheme);
         Assert.Equal("access-token-test", handler.AuthorizationParameter);
-        Assert.Contains("\\\"messaging_product\\\":\\\"whatsapp\\\"", handler.Body);
-        Assert.Contains("\\\"type\\\":\\\"text\\\"", handler.Body);
+        Assert.Contains("\"messaging_product\":\"whatsapp\"", handler.Body);
+        Assert.Contains("\"type\":\"text\"", handler.Body);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public sealed class MetaWhatsAppClientTests
 
         Assert.True(await client.MarkReadAsync("wamid.in", TestContext.Current.CancellationToken));
         Assert.Equal(HttpMethod.Put, handler.Method);
-        Assert.Contains("\\\"status\\\":\\\"read\\\"", handler.Body);
+        Assert.Contains("\"status\":\"read\"", handler.Body);
     }
 
     private static MetaWhatsAppClient Create(RecordingHandler handler)
