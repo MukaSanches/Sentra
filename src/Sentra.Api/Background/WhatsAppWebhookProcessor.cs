@@ -46,6 +46,10 @@ public sealed class WhatsAppWebhookProcessor(
 
                 processedAny = true;
 
+                var webhookId = webhook.Id;
+                await using var processingTransaction =
+                    await db.Database.BeginTransactionAsync(stoppingToken);
+
                 try
                 {
                     var changedCondominiums =
@@ -57,6 +61,7 @@ public sealed class WhatsAppWebhookProcessor(
 
                     webhook.MarkProcessed(clock.UtcNow);
                     await db.SaveChangesAsync(stoppingToken);
+                    await processingTransaction.CommitAsync(stoppingToken);
 
                     foreach (var condominiumId in changedCondominiums)
                     {
@@ -70,35 +75,34 @@ public sealed class WhatsAppWebhookProcessor(
                 }
                 catch (WhatsAppProcessingException exception)
                 {
-                    webhook.MarkFailed(
+                    await processingTransaction.RollbackAsync(stoppingToken);
+                    await MarkFailedAsync(
+                        db,
+                        webhookId,
                         exception.Code,
                         clock.UtcNow,
-                        RetryDelay(webhook.AttemptCount),
-                        MaxAttempts);
-
-                    await db.SaveChangesAsync(stoppingToken);
+                        stoppingToken);
 
                     logger.LogWarning(
-                        "Webhook {WebhookEventId} falhou com {ErrorCode} na tentativa {Attempt}.",
-                        webhook.Id,
-                        exception.Code,
-                        webhook.AttemptCount);
+                        "Webhook {WebhookEventId} falhou com {ErrorCode}; nenhuma alteração operacional parcial foi confirmada.",
+                        webhookId,
+                        exception.Code);
                 }
                 catch (Exception exception)
                     when (exception is not OperationCanceledException)
                 {
-                    webhook.MarkFailed(
+                    await processingTransaction.RollbackAsync(stoppingToken);
+                    await MarkFailedAsync(
+                        db,
+                        webhookId,
                         "processing_failed",
                         clock.UtcNow,
-                        RetryDelay(webhook.AttemptCount),
-                        MaxAttempts);
-
-                    await db.SaveChangesAsync(stoppingToken);
+                        stoppingToken);
 
                     logger.LogError(
                         exception,
-                        "Falha ao processar webhook {WebhookEventId}; conteúdo não foi incluído no log.",
-                        webhook.Id);
+                        "Falha ao processar webhook {WebhookEventId}; conteúdo não foi incluído no log e alterações parciais foram revertidas.",
+                        webhookId);
                 }
             }
 
@@ -107,6 +111,28 @@ public sealed class WhatsAppWebhookProcessor(
                 await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
             }
         }
+    }
+
+    private static async Task MarkFailedAsync(
+        SentraDbContext db,
+        Guid webhookId,
+        string errorCode,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        db.ChangeTracker.Clear();
+
+        var webhook = await db.WebhookEvents.SingleAsync(
+            item => item.Id == webhookId,
+            cancellationToken);
+
+        webhook.MarkFailed(
+            errorCode,
+            now,
+            RetryDelay(webhook.AttemptCount),
+            MaxAttempts);
+
+        await db.SaveChangesAsync(cancellationToken);
     }
 
     private static async Task<WebhookEvent?> ClaimNextAsync(
