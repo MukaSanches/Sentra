@@ -24,13 +24,13 @@ public sealed class CoreDomainTests
     [Fact]
     public void Employee_LocksAfterFiveFailedAttempts()
     {
-        var now = DateTimeOffset.UtcNow;
         var employee = new Employee(
             Guid.NewGuid(),
             Guid.NewGuid(),
             "Porteiro Teste",
             "porteiro",
             "hash-de-teste");
+        var now = employee.CreatedAt.AddSeconds(1);
 
         for (var attempt = 0; attempt < 5; attempt++)
         {
