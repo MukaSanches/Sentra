@@ -93,3 +93,15 @@ public sealed record SendWhatsAppFlowRequest(
     string Body,
     string? Screen,
     IReadOnlyDictionary<string, string>? Data);
+
+
+public sealed record ConversationAttachmentResponse(
+    Guid Id,
+    Guid MessageId,
+    string? MimeType,
+    string? FileName,
+    string StorageStatus);
+
+public sealed record SendWhatsAppMediaResponse(
+    string MediaId,
+    ConversationMessageResponse Message);
