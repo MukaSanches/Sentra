@@ -122,7 +122,7 @@ public sealed class MetaWhatsAppClient(
         using var request = CreateRequest(
             HttpMethod.Get,
             settings,
-            $"{settings.GraphVersion}/{mediaId}");
+            $"{settings.GraphVersion}/{mediaId}?phone_number_id={settings.PhoneNumberId}");
 
         using var response =
             await httpClient.SendAsync(request, cancellationToken);
@@ -147,40 +147,6 @@ public sealed class MetaWhatsAppClient(
             payload.MimeType,
             payload.Sha256,
             payload.FileSize);
-    }
-
-    public async Task<HttpResponseMessage> DownloadMediaAsync(
-        Uri mediaUrl,
-        CancellationToken cancellationToken)
-    {
-        if (!mediaUrl.IsAbsoluteUri ||
-            mediaUrl.Scheme != Uri.UriSchemeHttps)
-        {
-            throw new ArgumentException(
-                "URL de mídia deve usar HTTPS.",
-                nameof(mediaUrl));
-        }
-
-        var settings = MetaWhatsAppConfiguration.From(configuration);
-        using var request = new HttpRequestMessage(HttpMethod.Get, mediaUrl);
-        request.Headers.Authorization =
-            new AuthenticationHeaderValue("Bearer", settings.AccessToken);
-
-        var response = await httpClient.SendAsync(
-            request,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            response.Dispose();
-            throw new HttpRequestException(
-                "Falha ao baixar mídia do WhatsApp.",
-                null,
-                response.StatusCode);
-        }
-
-        return response;
     }
 
     private static HttpRequestMessage CreateRequest(
