@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Sentra.Application.Security;
 using Sentra.Infrastructure.Persistence;
+using Sentra.Infrastructure.Security;
 
 namespace Sentra.Infrastructure;
 
@@ -21,6 +23,8 @@ public static class DependencyInjection
                     postgres,
                     npgsql => npgsql.MigrationsAssembly(typeof(SentraDbContext).Assembly.FullName)));
         }
+
+        services.AddSingleton<IPasswordHashService, AspNetPasswordHashService>();
 
         return services;
     }
