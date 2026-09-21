@@ -48,6 +48,24 @@ public sealed class WhatsAppConfigurationDiagnosticsTests
     }
 
     [Fact]
+    public void Diagnostics_DoesNotRequireMetaAppId()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["META_GRAPH_VERSION"] = "v23.0",
+                ["META_WABA_ID"] = "456",
+                ["META_PHONE_NUMBER_ID"] = "789",
+                ["META_ACCESS_TOKEN"] = "token-value",
+                ["META_VERIFY_TOKEN"] = "verify-token-123456",
+                ["META_APP_SECRET"] = "app-secret-123456789"
+            })
+            .Build();
+
+        Assert.Empty(configuration.GetSentraWhatsAppConfigurationIssues());
+    }
+
+    [Fact]
     public void Diagnostics_ReturnsStructuralValidationErrorWithoutSecretValues()
     {
         var configuration = new ConfigurationBuilder()

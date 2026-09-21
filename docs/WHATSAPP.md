@@ -39,7 +39,6 @@ Variáveis:
 
 ```
 META_GRAPH_VERSION=
-META_APP_ID=
 META_WABA_ID=
 META_PHONE_NUMBER_ID=
 META_ACCESS_TOKEN=
@@ -54,6 +53,10 @@ Nenhum desses valores pode ser incluído no executável Windows ou versionado no
 É configurável de propósito. O Graph API é versionado e o SENTRA não congela uma versão dentro do código.
 
 A versão escolhida deve estar ativa e suportada pela Meta no ambiente de produção.
+
+### META_APP_ID (opcional)
+
+O App ID identifica a aplicação no painel Meta e pode ser mantido na configuração administrativa, mas não é necessário para as chamadas Cloud API utilizadas atualmente pelo adapter SENTRA. Por isso não bloqueia a validação operacional.
 
 ### META_ACCESS_TOKEN
 

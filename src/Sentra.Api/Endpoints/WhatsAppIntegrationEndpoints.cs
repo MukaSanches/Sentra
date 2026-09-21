@@ -50,7 +50,6 @@ public static class WhatsAppIntegrationEndpoints
         string[] required =
         [
             "META_GRAPH_VERSION",
-            "META_APP_ID",
             "META_WABA_ID",
             "META_PHONE_NUMBER_ID",
             "META_ACCESS_TOKEN",

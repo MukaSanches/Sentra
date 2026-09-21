@@ -156,10 +156,9 @@ Block users e Business Profile podem entrar em uma camada administrativa futura 
 
 ## O que deve faltar ao final do M2
 
-Depois de CI verde, a única lacuna externa admitida é configuração real da Meta:
+Depois de CI verde, a única lacuna externa admitida é configuração real da Meta. O App ID pode ser mantido como referência administrativa, mas não é requisito das chamadas operacionais abaixo:
 
 - `META_GRAPH_VERSION`;
-- `META_APP_ID`;
 - `META_WABA_ID`;
 - `META_PHONE_NUMBER_ID`;
 - `META_ACCESS_TOKEN`;

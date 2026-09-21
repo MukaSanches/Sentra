@@ -362,7 +362,7 @@ public sealed class MetaWhatsAppClientTests
     }
 
     [Fact]
-    public async Task MarkRead_UsesMessagesEndpointWithPut()
+    public async Task MarkRead_UsesOfficialPostMessagesEndpoint()
     {
         var handler = new RecordingHandler(async request =>
         {
