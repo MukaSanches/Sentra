@@ -5,6 +5,7 @@
     <AssemblyName>Sentra.Intelligence</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\Sentra.Application\Sentra.Application.csproj" />
   </ItemGroup>
 </Project>
