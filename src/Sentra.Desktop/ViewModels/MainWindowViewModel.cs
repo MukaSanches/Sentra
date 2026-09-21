@@ -52,6 +52,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task ShowOperationsAsync()
+    {
+        CurrentPage = _operations;
+        await _operations.LoadAsync();
+    }
+
+    [RelayCommand]
     private async Task ShowWhatsAppAsync()
     {
         CurrentPage = _whatsApp;
@@ -60,7 +67,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private async void OnAuthenticated(object? sender, EventArgs e)
     {
-        CurrentPage = _conversations;
-        await _conversations.LoadAsync();
+        CurrentPage = _operations;
+        await _operations.LoadAsync();
     }
 }
