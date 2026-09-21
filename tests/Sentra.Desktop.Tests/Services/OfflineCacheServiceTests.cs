@@ -10,6 +10,7 @@ public sealed class OfflineCacheServiceTests
     public async Task Snapshot_RoundTrip_PreservesOperationalData()
     {
         var path = CreateTempPath();
+        var cancellationToken = TestContext.Current.CancellationToken;
         try
         {
             var service = new OfflineCacheService(path);
@@ -28,8 +29,8 @@ public sealed class OfflineCacheServiceTests
                 [],
                 []);
 
-            await service.SaveSnapshotAsync(snapshot);
-            var loaded = await service.LoadSnapshotAsync();
+            await service.SaveSnapshotAsync(snapshot, cancellationToken);
+            var loaded = await service.LoadSnapshotAsync(cancellationToken);
 
             Assert.NotNull(loaded);
             Assert.Single(loaded.Residents);
@@ -53,18 +54,19 @@ public sealed class OfflineCacheServiceTests
             await service.QueueAsync(
                 "post",
                 "/api/v1/occurrences",
-                new { title = "Portão travado" });
+                new { title = "Portão travado" },
+                cancellationToken);
 
-            var pending = await service.GetPendingAsync();
+            var pending = await service.GetPendingAsync(cancellationToken);
             var item = Assert.Single(pending);
 
             Assert.Equal("POST", item.Method);
             Assert.Equal("api/v1/occurrences", item.Path);
             Assert.Contains("Portão travado", item.JsonBody);
 
-            await service.MarkSyncedAsync(item.Id);
+            await service.MarkSyncedAsync(item.Id, cancellationToken);
 
-            Assert.Empty(await service.GetPendingAsync());
+            Assert.Empty(await service.GetPendingAsync(cancellationToken));
         }
         finally
         {
