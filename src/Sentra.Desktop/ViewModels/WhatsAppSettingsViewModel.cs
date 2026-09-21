@@ -33,6 +33,12 @@ public sealed partial class WhatsAppSettingsViewModel(
     private string _webhookUrl = string.Empty;
 
     [ObservableProperty]
+    private string _configurationStatus = "NÃO VERIFICADO";
+
+    [ObservableProperty]
+    private string _pendingSettings = "—";
+
+    [ObservableProperty]
     private string _status = "Credenciais Meta ficam somente no servidor.";
 
     public async Task LoadAsync()
@@ -46,6 +52,14 @@ public sealed partial class WhatsAppSettingsViewModel(
                 : new Uri(
                     baseUri,
                     "api/v1/integrations/whatsapp/webhook").ToString();
+
+            var configuration = await apiClient.GetWhatsAppConfigurationAsync();
+            ConfigurationStatus = configuration.IsConfigured
+                ? "CONFIGURAÇÃO PRESENTE"
+                : "AGUARDANDO CONFIGURAÇÃO";
+            PendingSettings = configuration.MissingOrInvalidSettings.Count == 0
+                ? "Nenhuma pendência estrutural detectada."
+                : string.Join(Environment.NewLine, configuration.MissingOrInvalidSettings);
 
             var current = await apiClient.GetWhatsAppStatusAsync();
             State = current.State;

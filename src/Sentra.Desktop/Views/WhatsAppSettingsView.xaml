@@ -114,6 +114,25 @@
 
       <Border Style="{StaticResource SentraCard}">
         <StackPanel>
+          <TextBlock Text="Diagnóstico de configuração"
+                     FontSize="18"
+                     FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding ConfigurationStatus}"
+                     Margin="0,8,0,0"
+                     FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding PendingSettings}"
+                     Margin="0,8,0,0"
+                     TextWrapping="Wrap"
+                     Foreground="#596671"/>
+          <TextBlock Text="O diagnóstico mostra apenas nomes/erros de configuração; nunca exibe os valores dos segredos."
+                     Margin="0,10,0,0"
+                     TextWrapping="Wrap"
+                     Foreground="{StaticResource SentraAmberBrush}"/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource SentraCard}">
+        <StackPanel>
           <TextBlock Text="Configuração necessária no servidor"
                      FontSize="18"
                      FontWeight="SemiBold"/>

@@ -26,4 +26,38 @@ public static class DependencyInjection
     public static bool IsSentraWhatsAppConfigured(
         this IConfiguration configuration)
         => MetaWhatsAppConfiguration.IsConfigured(configuration);
+
+    public static IReadOnlyList<string> GetSentraWhatsAppConfigurationIssues(
+        this IConfiguration configuration)
+    {
+        var required = new[]
+        {
+            "META_GRAPH_VERSION",
+            "META_APP_ID",
+            "META_WABA_ID",
+            "META_PHONE_NUMBER_ID",
+            "META_ACCESS_TOKEN",
+            "META_VERIFY_TOKEN",
+            "META_APP_SECRET"
+        };
+
+        var issues = required
+            .Where(key => string.IsNullOrWhiteSpace(configuration[key]))
+            .Select(key => $"{key}: ausente")
+            .ToList();
+
+        if (issues.Count == 0)
+        {
+            try
+            {
+                _ = MetaWhatsAppConfiguration.From(configuration);
+            }
+            catch (InvalidOperationException exception)
+            {
+                issues.Add(exception.Message);
+            }
+        }
+
+        return issues;
+    }
 }

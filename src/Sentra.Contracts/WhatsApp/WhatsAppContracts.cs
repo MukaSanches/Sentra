@@ -1,5 +1,11 @@
 namespace Sentra.Contracts.WhatsApp;
 
+public sealed record WhatsAppConfigurationStatusResponse(
+    bool IsConfigured,
+    IReadOnlyList<string> RequiredSettings,
+    IReadOnlyList<string> MissingOrInvalidSettings,
+    string WebhookPath);
+
 public sealed record WhatsAppIntegrationStatusResponse(
     string State,
     string? PhoneNumberId,

@@ -17,6 +17,11 @@ public static class WhatsAppIntegrationEndpoints
         this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet(
+            "/api/v1/integrations/whatsapp/configuration",
+            GetConfigurationAsync)
+            .RequireAuthorization(PermissionCatalog.IntegrationsManage);
+
+        endpoints.MapGet(
             "/api/v1/integrations/whatsapp/status",
             GetStatusAsync)
             .RequireAuthorization(PermissionCatalog.IntegrationsManage);
@@ -37,6 +42,31 @@ public static class WhatsAppIntegrationEndpoints
             .RequireAuthorization(PermissionCatalog.IntegrationsManage);
 
         return endpoints;
+    }
+
+    private static Task<IResult> GetConfigurationAsync(
+        IConfiguration configuration)
+    {
+        string[] required =
+        [
+            "META_GRAPH_VERSION",
+            "META_APP_ID",
+            "META_WABA_ID",
+            "META_PHONE_NUMBER_ID",
+            "META_ACCESS_TOKEN",
+            "META_VERIFY_TOKEN",
+            "META_APP_SECRET"
+        ];
+
+        var issues = configuration.GetSentraWhatsAppConfigurationIssues();
+
+        return Task.FromResult<IResult>(
+            Results.Ok(
+                new WhatsAppConfigurationStatusResponse(
+                    issues.Count == 0,
+                    required,
+                    issues,
+                    "/api/v1/integrations/whatsapp/webhook")));
     }
 
     private static async Task<IResult> GetStatusAsync(

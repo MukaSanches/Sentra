@@ -17,6 +17,8 @@ public interface ISentraApiClient
         LoginRequest request,
         CancellationToken cancellationToken = default);
 
+    Task<WhatsAppConfigurationStatusResponse> GetWhatsAppConfigurationAsync(
+        CancellationToken cancellationToken = default);
     Task<WhatsAppIntegrationStatusResponse> GetWhatsAppStatusAsync(
         CancellationToken cancellationToken = default);
     Task<WhatsAppIntegrationVerifyResponse> VerifyWhatsAppAsync(

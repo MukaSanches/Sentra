@@ -80,6 +80,13 @@ public sealed class SentraApiClient(
         return response;
     }
 
+    public Task<WhatsAppConfigurationStatusResponse> GetWhatsAppConfigurationAsync(
+        CancellationToken cancellationToken = default)
+        => GetAsync<WhatsAppConfigurationStatusResponse>(
+            "api/v1/integrations/whatsapp/configuration",
+            authenticated: true,
+            cancellationToken);
+
     public Task<WhatsAppIntegrationStatusResponse> GetWhatsAppStatusAsync(
         CancellationToken cancellationToken = default)
         => GetAsync<WhatsAppIntegrationStatusResponse>(
