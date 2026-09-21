@@ -91,3 +91,32 @@ public partial class SentraIntelligenceEngineTests
         Assert.Equal("Maria De Souza", result.Extracted["visitor_name"]);
     }
 }
+
+
+public partial class SentraIntelligenceEngineTests
+{
+    [Fact]
+    public void StandaloneNameParticle_IsAcceptedButSentenceIsNot()
+    {
+        var withName = _engine.Analyze(new IntelligenceContext(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ["Vai chegar uma visita", "Ana da Silva", "chega 20:15"],
+            new DateTimeOffset(2026, 9, 20, 18, 0, 0, TimeSpan.FromHours(-3))));
+
+        Assert.Equal("Ana Da Silva", withName.Extracted["visitor_name"]);
+
+        var withoutName = _engine.Analyze(new IntelligenceContext(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ["Minha mãe vai chegar", "ela chega 20:15"],
+            new DateTimeOffset(2026, 9, 20, 18, 0, 0, TimeSpan.FromHours(-3))));
+
+        Assert.Null(withoutName.Extracted["visitor_name"]);
+        Assert.Contains("visitor_name", withoutName.MissingFields);
+    }
+}

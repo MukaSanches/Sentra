@@ -210,12 +210,24 @@ public sealed partial class SentraIntelligenceEngine : IIntelligenceEngine
             return null;
         }
 
-        if (words.Any(word => !Regex.IsMatch(
-                word,
-                @"^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇ][\p{L}'-]{1,39}$",
-                RegexOptions.CultureInvariant)))
+        for (var index = 0; index < words.Length; index++)
         {
-            return null;
+            var word = words[index];
+
+            if (index > 0 &&
+                index < words.Length - 1 &&
+                PersonNameParticles.Contains(word))
+            {
+                continue;
+            }
+
+            if (!Regex.IsMatch(
+                    word,
+                    @"^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇ][\p{L}'-]{1,39}$",
+                    RegexOptions.CultureInvariant))
+            {
+                return null;
+            }
         }
 
         return NormalizePersonName(candidate);
@@ -241,6 +253,12 @@ public sealed partial class SentraIntelligenceEngine : IIntelligenceEngine
         return CultureInfo.GetCultureInfo("pt-BR").TextInfo
             .ToTitleCase(normalized.ToLowerInvariant());
     }
+
+    private static readonly HashSet<string> PersonNameParticles =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "de", "da", "do", "das", "dos", "e"
+        };
 
     private static readonly HashSet<string> PersonNameStopWords =
         new(StringComparer.OrdinalIgnoreCase)
