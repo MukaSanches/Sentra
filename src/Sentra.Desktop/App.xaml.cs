@@ -16,6 +16,11 @@ public partial class App : System.Windows.Application
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices((_, services) =>
             {
+                services.AddHttpClient("SENTRA-UPDATES", client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(15);
+                });
+
                 services.AddHttpClient("SENTRA", client =>
                 {
                     client.Timeout = TimeSpan.FromSeconds(30);
@@ -25,6 +30,7 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<SessionState>();
                 services.AddSingleton<ISentraApiClient, SentraApiClient>();
                 services.AddSingleton<RealtimeService>();
+                services.AddSingleton<IUpdateService, UpdateService>();
                 services.AddSingleton<IOfflineCacheService, OfflineCacheService>();
                 services.AddHostedService<OfflineSyncService>();
 

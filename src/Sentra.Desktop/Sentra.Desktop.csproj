@@ -7,6 +7,11 @@
     <RootNamespace>Sentra.Desktop</RootNamespace>
     <AssemblyName>SENTRA</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.0.0</Version>
+    <Authors>Samuel Sanches</Authors>
+    <Company>Samuel Sanches</Company>
+    <Product>SENTRA — Central Inteligente de Portaria</Product>
+    <Copyright>© 2026 Samuel Sanches</Copyright>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />

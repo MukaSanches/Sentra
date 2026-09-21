@@ -7,7 +7,7 @@ using Sentra.Desktop.Services;
 
 namespace Sentra.Desktop.ViewModels;
 
-public sealed partial class AdministrationViewModel(ISentraApiClient api)
+public sealed partial class AdministrationViewModel(ISentraApiClient api, IUpdateService updates)
     : PageViewModel("Administração")
 {
     public ObservableCollection<PermissionAdminResponse> Permissions { get; } = [];
@@ -23,6 +23,8 @@ public sealed partial class AdministrationViewModel(ISentraApiClient api)
     [ObservableProperty] private string _employeeName = string.Empty;
     [ObservableProperty] private string _employeeUsername = string.Empty;
     [ObservableProperty] private string _employeePassword = string.Empty;
+    [ObservableProperty] private UpdateCheckResult? _lastUpdateCheck;
+    [ObservableProperty] private string _updateStatus = "Atualização ainda não verificada.";
     [ObservableProperty] private string _status = "Administração pronta.";
 
     public async Task LoadAsync()
@@ -41,6 +43,19 @@ public sealed partial class AdministrationViewModel(ISentraApiClient api)
     [RelayCommand] private Task RefreshAsync() => LoadAsync();
 
     [RelayCommand]
+    private async Task CheckUpdateAsync()
+    {
+        LastUpdateCheck = await updates.CheckAsync();
+        UpdateStatus = LastUpdateCheck.Message;
+    }
+
+    [RelayCommand]
+    private void OpenUpdate()
+    {
+        if (LastUpdateCheck is not null) updates.OpenRelease(LastUpdateCheck);
+    }
+
+    [RelayCommand]
     private async Task CreateRoleAsync()
     {
         if (string.IsNullOrWhiteSpace(RoleName))
@@ -50,7 +65,8 @@ public sealed partial class AdministrationViewModel(ISentraApiClient api)
         }
 
         var codes = RolePermissionCodes.Split(
-            [',',';','|','\r','\n'],
+            [',',';','|','\r','
+'],
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         try

@@ -38,6 +38,17 @@
           <DataGrid Grid.Column="1" ItemsSource="{Binding Roles}" IsReadOnly="True"/>
         </Grid>
       </TabItem>
+      <TabItem Header="Sistema">
+        <StackPanel Margin="18">
+          <TextBlock Text="Atualizações" FontSize="18" FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding UpdateStatus}" Margin="0,8,0,12"/>
+          <StackPanel Orientation="Horizontal">
+            <Button Style="{StaticResource SentraButton}" Content="Verificar atualização" Command="{Binding CheckUpdateCommand}"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Abrir release" Command="{Binding OpenUpdateCommand}"/>
+          </StackPanel>
+          <TextBlock Text="O SENTRA verifica releases oficiais do repositório. Atualizações não são instaladas silenciosamente." TextWrapping="Wrap" Margin="0,12,0,0" Foreground="#596671"/>
+        </StackPanel>
+      </TabItem>
       <TabItem Header="Auditoria">
         <DataGrid Margin="12" ItemsSource="{Binding Audit}" IsReadOnly="True"/>
       </TabItem>
