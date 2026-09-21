@@ -213,13 +213,20 @@ public static class IntelligenceEndpoints
 
     private static bool TryIds(ClaimsPrincipal user, out Guid condominiumId, out Guid employeeId)
     {
+        condominiumId = Guid.Empty;
+        employeeId = Guid.Empty;
         var condominium = user.FindFirst("condominium_id")?.Value;
         var employee = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub")?.Value;
-        return Guid.TryParse(condominium, out condominiumId) && Guid.TryParse(employee, out employeeId);
+        return Guid.TryParse(condominium, out condominiumId)
+            && Guid.TryParse(employee, out employeeId);
     }
 
     private static bool TryGuid(Dictionary<string, string?> data, string key, out Guid value)
-        => data.TryGetValue(key, out var raw) && Guid.TryParse(raw, out value);
+    {
+        value = Guid.Empty;
+        return data.TryGetValue(key, out var raw)
+            && Guid.TryParse(raw, out value);
+    }
 
     private static bool TryText(Dictionary<string, string?> data, string key, out string value)
     {
@@ -230,5 +237,9 @@ public static class IntelligenceEndpoints
     }
 
     private static bool TryDate(Dictionary<string, string?> data, string key, out DateTimeOffset value)
-        => data.TryGetValue(key, out var raw) && DateTimeOffset.TryParse(raw, out value);
+    {
+        value = default;
+        return data.TryGetValue(key, out var raw)
+            && DateTimeOffset.TryParse(raw, out value);
+    }
 }

@@ -246,7 +246,10 @@ public static class PortariaEndpoints
 
     private static bool TryIds(ClaimsPrincipal user, out Guid condominiumId, out Guid employeeId)
     {
+        condominiumId = Guid.Empty;
+        employeeId = Guid.Empty;
         var employee = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub")?.Value;
-        return TryCondominium(user, out condominiumId) && Guid.TryParse(employee, out employeeId);
+        return TryCondominium(user, out condominiumId)
+            && Guid.TryParse(employee, out employeeId);
     }
 }
