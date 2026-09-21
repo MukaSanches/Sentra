@@ -13,7 +13,8 @@ using Sentra.Application.Security;
 using Sentra.Application.Services;
 using Sentra.Contracts.System;
 using Sentra.Infrastructure;
-using Sentra.WhatsApp;\nusing Sentra.Intelligence;
+using Sentra.WhatsApp;
+using Sentra.Intelligence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSentraInfrastructure(builder.Configuration);
-builder.Services.AddSentraWhatsApp(builder.Configuration);\nbuilder.Services.AddSentraIntelligence();
+builder.Services.AddSentraWhatsApp(builder.Configuration);
+builder.Services.AddSentraIntelligence();
 builder.Services.AddHealthChecks()
     .AddCheck<SetupReadinessHealthCheck>(
         "setup-readiness",
@@ -187,7 +189,9 @@ if (databaseConfigured)
     {
         app.MapSentraCoreOperationsEndpoints();
         app.MapWhatsAppIntegrationEndpoints();
-        app.MapConversationEndpoints();\n        app.MapSentraIntelligenceEndpoints();\n        app.MapSentraPortariaEndpoints();
+        app.MapConversationEndpoints();
+        app.MapSentraIntelligenceEndpoints();
+        app.MapSentraPortariaEndpoints();
     }
 }
 

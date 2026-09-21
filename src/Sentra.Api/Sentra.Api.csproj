@@ -10,6 +10,7 @@
     <ProjectReference Include="..\Sentra.Infrastructure\Sentra.Infrastructure.csproj" />
     <ProjectReference Include="..\Sentra.WhatsApp\Sentra.WhatsApp.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />\n    <PackageReference Include="QRCoder" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="QRCoder" />
   </ItemGroup>
 </Project>

@@ -24,11 +24,14 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<IDesktopSettingsService, DesktopSettingsService>();
                 services.AddSingleton<SessionState>();
                 services.AddSingleton<ISentraApiClient, SentraApiClient>();
-                services.AddSingleton<RealtimeService>();\n                services.AddSingleton<IOfflineCacheService, OfflineCacheService>();\n                services.AddHostedService<OfflineSyncService>();
+                services.AddSingleton<RealtimeService>();
+                services.AddSingleton<IOfflineCacheService, OfflineCacheService>();
+                services.AddHostedService<OfflineSyncService>();
 
                 services.AddSingleton<ConnectionViewModel>();
                 services.AddSingleton<ConversationsViewModel>();
-                services.AddSingleton<WhatsAppSettingsViewModel>();\n                services.AddSingleton<OperationsViewModel>();
+                services.AddSingleton<WhatsAppSettingsViewModel>();
+                services.AddSingleton<OperationsViewModel>();
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<MainWindow>();
             })

@@ -14,14 +14,19 @@ public static class PermissionCatalog
     public const string ConversationsRead = "conversations.read";
     public const string ConversationsManage = "conversations.manage";
     public const string VisitorsRead = "visitors.read";
-    public const string VisitorsManage = "visitors.manage";\n    public const string ProvidersRead = "providers.read";\n    public const string ProvidersManage = "providers.manage";
+    public const string VisitorsManage = "visitors.manage";
+    public const string ProvidersRead = "providers.read";
+    public const string ProvidersManage = "providers.manage";
     public const string PackagesRead = "packages.read";
     public const string PackagesManage = "packages.manage";
     public const string OccurrencesRead = "occurrences.read";
     public const string OccurrencesManage = "occurrences.manage";
     public const string ShiftsRead = "shifts.read";
     public const string ShiftsManage = "shifts.manage";
-    public const string AnnouncementsRead = "announcements.read";\n    public const string AnnouncementsManage = "announcements.manage";\n    public const string BackupManage = "backup.manage";\n    public const string IntegrationsManage = "integrations.manage";
+    public const string AnnouncementsRead = "announcements.read";
+    public const string AnnouncementsManage = "announcements.manage";
+    public const string BackupManage = "backup.manage";
+    public const string IntegrationsManage = "integrations.manage";
     public const string AuditRead = "audit.read";
 
     public static IReadOnlyList<PermissionDefinition> All { get; } =
@@ -36,14 +41,19 @@ public static class PermissionCatalog
         new(ConversationsRead, "Consultar conversas operacionais."),
         new(ConversationsManage, "Enviar mensagens e operar conversas."),
         new(VisitorsRead, "Consultar visitantes e autorizações."),
-        new(VisitorsManage, "Gerenciar visitantes e autorizações."),\n        new(ProvidersRead, "Consultar prestadores de serviço."),\n        new(ProvidersManage, "Gerenciar prestadores e autorizações."),
+        new(VisitorsManage, "Gerenciar visitantes e autorizações."),
+        new(ProvidersRead, "Consultar prestadores de serviço."),
+        new(ProvidersManage, "Gerenciar prestadores e autorizações."),
         new(PackagesRead, "Consultar encomendas."),
         new(PackagesManage, "Registrar e entregar encomendas."),
         new(OccurrencesRead, "Consultar ocorrências."),
         new(OccurrencesManage, "Registrar e encerrar ocorrências."),
         new(ShiftsRead, "Consultar turnos."),
         new(ShiftsManage, "Abrir e encerrar turnos."),
-        new(AnnouncementsRead, "Consultar comunicados."),\n        new(AnnouncementsManage, "Criar e gerenciar comunicados."),\n        new(BackupManage, "Exportar e restaurar backups operacionais."),\n        new(IntegrationsManage, "Configurar integrações."),
+        new(AnnouncementsRead, "Consultar comunicados."),
+        new(AnnouncementsManage, "Criar e gerenciar comunicados."),
+        new(BackupManage, "Exportar e restaurar backups operacionais."),
+        new(IntegrationsManage, "Configurar integrações."),
         new(AuditRead, "Consultar trilha de auditoria.")
     ];
 }

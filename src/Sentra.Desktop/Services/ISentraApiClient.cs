@@ -1,5 +1,7 @@
 using System.IO;
-using Sentra.Contracts.Auth;\nusing Sentra.Contracts.Core;\nusing Sentra.Contracts.Operations;
+using Sentra.Contracts.Auth;
+using Sentra.Contracts.Core;
+using Sentra.Contracts.Operations;
 using Sentra.Contracts.Setup;
 using Sentra.Contracts.WhatsApp;
 

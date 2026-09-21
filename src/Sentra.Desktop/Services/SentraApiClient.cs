@@ -3,7 +3,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Sentra.Contracts.Auth;\nusing Sentra.Contracts.Core;\nusing Sentra.Contracts.Operations;
+using Sentra.Contracts.Auth;
+using Sentra.Contracts.Core;
+using Sentra.Contracts.Operations;
 using Sentra.Contracts.Setup;
 using Sentra.Contracts.WhatsApp;
 

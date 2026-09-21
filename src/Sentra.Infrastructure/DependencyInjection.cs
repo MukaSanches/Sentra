@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Sentra.Application.Security;
-using Sentra.Infrastructure.Persistence;\nusing Sentra.Infrastructure.Operations;\nusing Sentra.Application.Operations;
+using Sentra.Infrastructure.Persistence;
+using Sentra.Infrastructure.Operations;
+using Sentra.Application.Operations;
 using Sentra.Infrastructure.Security;
 
 namespace Sentra.Infrastructure;
@@ -25,7 +27,8 @@ public static class DependencyInjection
             services.AddHostedService<PermissionCatalogSynchronizer>();
         }
 
-        services.AddScoped<IOperationalStore, OperationalStore>();\n        services.AddSingleton<IPasswordHashService, AspNetPasswordHashService>();
+        services.AddScoped<IOperationalStore, OperationalStore>();
+        services.AddSingleton<IPasswordHashService, AspNetPasswordHashService>();
 
         return services;
     }
