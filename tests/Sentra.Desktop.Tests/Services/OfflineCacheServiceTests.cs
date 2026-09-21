@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 using Sentra.Contracts.Operations;
 using Sentra.Desktop.Services;
 
@@ -63,7 +64,11 @@ public sealed class OfflineCacheServiceTests
 
             Assert.Equal("POST", item.Method);
             Assert.Equal("api/v1/occurrences", item.Path);
-            Assert.Contains("Portão travado", item.JsonBody);
+            Assert.NotNull(item.JsonBody);
+            using var document = JsonDocument.Parse(item.JsonBody);
+            Assert.Equal(
+                "Portão travado",
+                document.RootElement.GetProperty("title").GetString());
 
             await service.MarkSyncedAsync(item.Id, cancellationToken);
 
