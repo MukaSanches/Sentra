@@ -137,6 +137,29 @@
         <StackPanel>
           <Border Style="{StaticResource SentraCard}">
             <StackPanel>
+              <TextBlock Text="Sentra Intelligence"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="{Binding IntelligenceAnalysis.ResolutionState, TargetNullValue=Não analisado}"
+                         Margin="0,6,0,0"
+                         FontWeight="SemiBold"/>
+              <TextBlock Text="{Binding IntelligenceAnalysis.Summary, TargetNullValue=A análise usa o contexto salvo da conversa e nunca abre portões.}"
+                         TextWrapping="Wrap"
+                         Margin="0,6,0,8"
+                         Foreground="#596671"/>
+              <Button Style="{StaticResource SentraButton}"
+                      Content="Analisar conversa"
+                      Command="{Binding AnalyzeIntelligenceCommand}"/>
+              <Button Style="{StaticResource SentraSecondaryButton}"
+                      Content="Confirmar ação preparada"
+                      Command="{Binding ConfirmIntelligenceActionCommand}"/>
+              <Button Style="{StaticResource SentraSecondaryButton}"
+                      Content="Rejeitar sugestão"
+                      Command="{Binding RejectIntelligenceActionCommand}"/>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource SentraCard}">
+            <StackPanel>
               <TextBlock Text="Template aprovado"
                          FontWeight="SemiBold"/>
               <ComboBox Style="{StaticResource SentraComboBox}"

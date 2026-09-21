@@ -208,7 +208,7 @@ public static class IntelligenceEndpoints
             confirming ? "confirm" : "reject",
             cancellationToken);
 
-        return Results.Ok(new { pendingAction = resolved, created });
+        return Results.Ok(resolved);
     }
 
     private static bool TryIds(ClaimsPrincipal user, out Guid condominiumId, out Guid employeeId)

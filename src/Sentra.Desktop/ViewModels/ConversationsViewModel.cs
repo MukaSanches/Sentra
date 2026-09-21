@@ -60,6 +60,12 @@ public sealed partial class ConversationsViewModel
     private string _interactiveBody = "Confirma esta solicitação?";
 
     [ObservableProperty]
+    private IntelligenceAnalysisResponse? _intelligenceAnalysis;
+
+    [ObservableProperty]
+    private Guid? _pendingActionId;
+
+    [ObservableProperty]
     private string _status = "Selecione uma conversa.";
 
     partial void OnSelectedConversationChanged(
@@ -132,6 +138,70 @@ public sealed partial class ConversationsViewModel
 
     [RelayCommand]
     private Task RefreshAsync() => LoadAsync();
+
+    [RelayCommand]
+    private async Task AnalyzeIntelligenceAsync()
+    {
+        if (SelectedConversation is null)
+        {
+            Status = "Selecione uma conversa.";
+            return;
+        }
+
+        try
+        {
+            IntelligenceAnalysis = await _apiClient.AnalyzeConversationAsync(SelectedConversation.Id);
+            PendingActionId = IntelligenceAnalysis.PendingActionId;
+            Status = IntelligenceAnalysis.Summary;
+        }
+        catch (Exception exception)
+        {
+            Status = DescribeError(exception);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ConfirmIntelligenceActionAsync()
+    {
+        if (PendingActionId is null)
+        {
+            Status = "Não há ação pendente para confirmar.";
+            return;
+        }
+
+        try
+        {
+            await _apiClient.ResolvePendingActionAsync(PendingActionId.Value, "confirm");
+            Status = "Ação confirmada pelo porteiro e executada pelo Policy Engine.";
+            PendingActionId = null;
+            await LoadSelectedConversationAsync();
+        }
+        catch (Exception exception)
+        {
+            Status = DescribeError(exception);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RejectIntelligenceActionAsync()
+    {
+        if (PendingActionId is null)
+        {
+            Status = "Não há ação pendente.";
+            return;
+        }
+
+        try
+        {
+            await _apiClient.ResolvePendingActionAsync(PendingActionId.Value, "reject");
+            Status = "Sugestão rejeitada. Nenhuma ação operacional foi executada.";
+            PendingActionId = null;
+        }
+        catch (Exception exception)
+        {
+            Status = DescribeError(exception);
+        }
+    }
 
     [RelayCommand]
     private async Task SendTextAsync()
