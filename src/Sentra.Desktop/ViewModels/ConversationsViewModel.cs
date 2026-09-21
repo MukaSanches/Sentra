@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Sentra.Contracts.Operations;
 using Sentra.Contracts.WhatsApp;
 using Sentra.Desktop.Services;
 
