@@ -1,3 +1,5 @@
+using System.Net.Http;
+using System.IO;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Hosting;
