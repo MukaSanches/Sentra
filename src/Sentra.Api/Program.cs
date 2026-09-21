@@ -194,6 +194,7 @@ if (databaseConfigured)
         app.MapSentraPortariaEndpoints();
         app.MapSentraAdminEndpoints();
         app.MapSentraImportEndpoints();
+        app.MapSentraBackupEndpoints();
     }
 }
 

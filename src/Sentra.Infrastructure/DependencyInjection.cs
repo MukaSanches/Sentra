@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Sentra.Application.Backup;
 using Sentra.Application.Security;
+using Sentra.Infrastructure.Backup;
 using Sentra.Infrastructure.Persistence;
 using Sentra.Infrastructure.Operations;
 using Sentra.Application.Operations;
@@ -28,6 +30,7 @@ public static class DependencyInjection
         }
 
         services.AddScoped<IOperationalStore, OperationalStore>();
+        services.AddScoped<ITenantBackupService, TenantBackupService>();
         services.AddSingleton<IPasswordHashService, AspNetPasswordHashService>();
 
         return services;
