@@ -192,6 +192,7 @@ if (databaseConfigured)
         app.MapConversationEndpoints();
         app.MapSentraIntelligenceEndpoints();
         app.MapSentraPortariaEndpoints();
+        app.MapSentraAdminEndpoints();
     }
 }
 
