@@ -47,6 +47,7 @@ public sealed class OfflineCacheServiceTests
     public async Task Outbox_QueuesAndRemovesOnlyConfirmedItem()
     {
         var path = CreateTempPath();
+        var cancellationToken = TestContext.Current.CancellationToken;
         try
         {
             var service = new OfflineCacheService(path);
