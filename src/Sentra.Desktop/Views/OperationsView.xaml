@@ -1,0 +1,140 @@
+<UserControl x:Class="Sentra.Desktop.Views.OperationsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <Grid Margin="0,0,0,14">
+      <TextBlock Text="Central operacional" FontSize="26" FontWeight="SemiBold"/>
+      <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+        <TextBlock Text="MODO OFFLINE" Foreground="{StaticResource SentraAmberBrush}"
+                   FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,14,0"
+                   Visibility="{Binding OfflineMode, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <Button Style="{StaticResource SentraSecondaryButton}" Content="Atualizar" Command="{Binding RefreshCommand}"/>
+      </StackPanel>
+    </Grid>
+
+    <UniformGrid Grid.Row="1" Columns="5" Margin="0,0,0,14">
+      <Border Style="{StaticResource SentraCard}"><StackPanel><TextBlock Text="Dentro"/><TextBlock Text="{Binding Dashboard.VisitorsInside, TargetNullValue=0}" FontSize="24" FontWeight="SemiBold"/></StackPanel></Border>
+      <Border Style="{StaticResource SentraCard}"><StackPanel><TextBlock Text="Encomendas"/><TextBlock Text="{Binding Dashboard.PendingPackages, TargetNullValue=0}" FontSize="24" FontWeight="SemiBold"/></StackPanel></Border>
+      <Border Style="{StaticResource SentraCard}"><StackPanel><TextBlock Text="Ocorrências"/><TextBlock Text="{Binding Dashboard.OpenOccurrences, TargetNullValue=0}" FontSize="24" FontWeight="SemiBold"/></StackPanel></Border>
+      <Border Style="{StaticResource SentraCard}"><StackPanel><TextBlock Text="Autorizações"/><TextBlock Text="{Binding Dashboard.ActiveAuthorizations, TargetNullValue=0}" FontSize="24" FontWeight="SemiBold"/></StackPanel></Border>
+      <Border Style="{StaticResource SentraCard}"><StackPanel><TextBlock Text="Ações pendentes"/><TextBlock Text="{Binding Dashboard.PendingActions, TargetNullValue=0}" FontSize="24" FontWeight="SemiBold"/></StackPanel></Border>
+    </UniformGrid>
+
+    <TabControl Grid.Row="2">
+      <TabItem Header="Visitantes">
+        <Grid Margin="12">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="360"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,14,0">
+            <TextBlock Text="Nova autorização" FontSize="18" FontWeight="SemiBold"/>
+            <ComboBox ItemsSource="{Binding Units}" SelectedItem="{Binding SelectedUnit}" DisplayMemberPath="DisplayName" Margin="0,10,0,6"/>
+            <TextBox Text="{Binding VisitorName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4" ToolTip="Nome do visitante"/>
+            <TextBox Text="{Binding VisitorPlate, UpdateSourceTrigger=PropertyChanged}" Margin="0,4" ToolTip="Placa opcional"/>
+            <TextBox Text="{Binding VisitorPurpose, UpdateSourceTrigger=PropertyChanged}" Margin="0,4" ToolTip="Finalidade"/>
+            <TextBlock Text="Início"/>
+            <TextBox Text="{Binding VisitorStartsAt}"/>
+            <TextBlock Text="Fim" Margin="0,6,0,0"/>
+            <TextBox Text="{Binding VisitorEndsAt}"/>
+            <Button Style="{StaticResource SentraButton}" Content="Autorizar" Command="{Binding CreateVisitorCommand}" Margin="0,10,0,0"/>
+            <Separator Margin="0,14"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Registrar entrada" Command="{Binding RegisterEntryCommand}"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Registrar saída" Command="{Binding RegisterExitCommand}"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Gerar QR temporário" Command="{Binding CreateQrCommand}"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Abrir QR" Command="{Binding OpenQrCommand}"/>
+          </StackPanel>
+          <DataGrid Grid.Column="1" ItemsSource="{Binding Visitors}" SelectedItem="{Binding SelectedVisitor}" IsReadOnly="True" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Visitante" Binding="{Binding VisitorName}" Width="*"/>
+              <DataGridTextColumn Header="Início" Binding="{Binding StartsAt}" Width="160"/>
+              <DataGridTextColumn Header="Fim" Binding="{Binding EndsAt}" Width="160"/>
+              <DataGridTextColumn Header="Placa" Binding="{Binding VehiclePlate}" Width="100"/>
+              <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Encomendas">
+        <Grid Margin="12"><Grid.ColumnDefinitions><ColumnDefinition Width="320"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,14,0">
+            <ComboBox ItemsSource="{Binding Units}" SelectedItem="{Binding SelectedUnit}" DisplayMemberPath="DisplayName"/>
+            <TextBox Text="{Binding PackageCarrier}" Margin="0,8,0,0" ToolTip="Transportadora"/>
+            <TextBox Text="{Binding PackageDescription}" Margin="0,8,0,0" ToolTip="Descrição"/>
+            <Button Style="{StaticResource SentraButton}" Content="Registrar encomenda" Command="{Binding CreatePackageCommand}" Margin="0,10,0,0"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Confirmar retirada" Command="{Binding CollectPackageCommand}"/>
+          </StackPanel>
+          <DataGrid Grid.Column="1" ItemsSource="{Binding Packages}" SelectedItem="{Binding SelectedPackage}" IsReadOnly="True"/>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Ocorrências">
+        <Grid Margin="12"><Grid.ColumnDefinitions><ColumnDefinition Width="340"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,14,0">
+            <ComboBox ItemsSource="{Binding Units}" SelectedItem="{Binding SelectedUnit}" DisplayMemberPath="DisplayName"/>
+            <TextBox Text="{Binding OccurrenceCategory}" Margin="0,8,0,0"/>
+            <TextBox Text="{Binding OccurrenceTitle}" Margin="0,8,0,0"/>
+            <TextBox Text="{Binding OccurrenceDescription}" Margin="0,8,0,0" Height="100" AcceptsReturn="True" TextWrapping="Wrap"/>
+            <ComboBox Text="{Binding OccurrencePriority}" Margin="0,8,0,0">
+              <ComboBoxItem Content="Low"/><ComboBoxItem Content="Normal"/><ComboBoxItem Content="High"/><ComboBoxItem Content="Critical"/>
+            </ComboBox>
+            <Button Style="{StaticResource SentraButton}" Content="Registrar ocorrência" Command="{Binding CreateOccurrenceCommand}" Margin="0,10,0,0"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Marcar resolvida" Command="{Binding ResolveOccurrenceCommand}"/>
+          </StackPanel>
+          <DataGrid Grid.Column="1" ItemsSource="{Binding Occurrences}" SelectedItem="{Binding SelectedOccurrence}" IsReadOnly="True"/>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Prestadores">
+        <Grid Margin="12"><Grid.ColumnDefinitions><ColumnDefinition Width="320"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,14,0">
+            <TextBox Text="{Binding ProviderName}" ToolTip="Nome"/>
+            <TextBox Text="{Binding ProviderCompany}" Margin="0,8,0,0" ToolTip="Empresa"/>
+            <Button Style="{StaticResource SentraButton}" Content="Cadastrar prestador" Command="{Binding CreateProviderCommand}" Margin="0,10,0,0"/>
+          </StackPanel>
+          <DataGrid Grid.Column="1" ItemsSource="{Binding Providers}" IsReadOnly="True"/>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Turnos">
+        <Grid Margin="12"><Grid.ColumnDefinitions><ColumnDefinition Width="340"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,14,0">
+            <Button Style="{StaticResource SentraButton}" Content="Abrir / retomar turno" Command="{Binding OpenShiftCommand}"/>
+            <TextBox Text="{Binding ShiftSummary}" Height="120" AcceptsReturn="True" TextWrapping="Wrap" Margin="0,10,0,0"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Encerrar com passagem" Command="{Binding CloseShiftCommand}"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="LI E ASSUMO O TURNO" Command="{Binding AcknowledgeShiftCommand}"/>
+          </StackPanel>
+          <DataGrid Grid.Column="1" ItemsSource="{Binding Shifts}" SelectedItem="{Binding SelectedShift}" IsReadOnly="True"/>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Comunicados">
+        <Grid Margin="12"><Grid.ColumnDefinitions><ColumnDefinition Width="340"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <StackPanel Margin="0,0,14,0">
+            <TextBox Text="{Binding AnnouncementTitle}" ToolTip="Título"/>
+            <TextBox Text="{Binding AnnouncementBody}" Height="120" Margin="0,8,0,0" AcceptsReturn="True" TextWrapping="Wrap"/>
+            <Button Style="{StaticResource SentraButton}" Content="Publicar comunicado" Command="{Binding CreateAnnouncementCommand}" Margin="0,10,0,0"/>
+          </StackPanel>
+          <DataGrid Grid.Column="1" ItemsSource="{Binding Announcements}" IsReadOnly="True"/>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Busca">
+        <StackPanel Margin="12">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Style="{StaticResource SentraButton}" Content="Buscar" Command="{Binding SearchCommand}"/>
+            <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,10,0"/>
+          </DockPanel>
+          <DataGrid ItemsSource="{Binding SearchResults}" IsReadOnly="True" Margin="0,12,0,0"/>
+        </StackPanel>
+      </TabItem>
+    </TabControl>
+
+    <TextBlock Grid.Row="3" Text="{Binding Status}" TextWrapping="Wrap" Margin="4,10,4,0"/>
+  </Grid>
+</UserControl>

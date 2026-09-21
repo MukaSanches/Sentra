@@ -7,16 +7,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
 {
     private readonly ConnectionViewModel _connection;
     private readonly ConversationsViewModel _conversations;
-    private readonly WhatsAppSettingsViewModel _whatsApp;
+    private readonly WhatsAppSettingsViewModel _whatsApp;\n    private readonly OperationsViewModel _operations;
 
     public MainWindowViewModel(
         ConnectionViewModel connection,
         ConversationsViewModel conversations,
-        WhatsAppSettingsViewModel whatsApp)
+        WhatsAppSettingsViewModel whatsApp,\n        OperationsViewModel operations)
     {
         _connection = connection;
         _conversations = conversations;
-        _whatsApp = whatsApp;
+        _whatsApp = whatsApp;\n        _operations = operations;
         _currentPage = connection;
 
         _connection.Authenticated += OnAuthenticated;

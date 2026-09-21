@@ -4,7 +4,7 @@
              xmlns:vm="clr-namespace:Sentra.Desktop.ViewModels"
              xmlns:views="clr-namespace:Sentra.Desktop.Views">
   <Application.Resources>
-    <ResourceDictionary>
+    <ResourceDictionary>\n      <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Themes/Branding.xaml"/>
       </ResourceDictionary.MergedDictionaries>
@@ -15,7 +15,7 @@
       <DataTemplate DataType="{x:Type vm:ConversationsViewModel}">
         <views:ConversationsView/>
       </DataTemplate>
-      <DataTemplate DataType="{x:Type vm:WhatsAppSettingsViewModel}">
+      <DataTemplate DataType="{x:Type vm:OperationsViewModel}">\n        <views:OperationsView/>\n      </DataTemplate>\n      <DataTemplate DataType="{x:Type vm:WhatsAppSettingsViewModel}">
         <views:WhatsAppSettingsView/>
       </DataTemplate>
     </ResourceDictionary>
