@@ -1,3 +1,4 @@
+using System.IO;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -41,6 +42,33 @@ public sealed partial class AdministrationViewModel(ISentraApiClient api, IUpdat
     }
 
     [RelayCommand] private Task RefreshAsync() => LoadAsync();
+
+    public Task ImportUnitsFileAsync(string path)
+        => ImportFileAsync(path, units: true);
+
+    public Task ImportResidentsFileAsync(string path)
+        => ImportFileAsync(path, units: false);
+
+    private async Task ImportFileAsync(string path, bool units)
+    {
+        try
+        {
+            await using var stream = File.OpenRead(path);
+            var result = units
+                ? await api.ImportUnitsAsync(stream, Path.GetFileName(path))
+                : await api.ImportResidentsAsync(stream, Path.GetFileName(path));
+
+            Status =
+                $"Importação concluída: {result.Imported} importado(s), " +
+                $"{result.Skipped} ignorado(s), {result.Errors.Count} erro(s).";
+
+            await LoadAsync();
+        }
+        catch (Exception e)
+        {
+            Status = DescribeError(e);
+        }
+    }
 
     [RelayCommand]
     private async Task CheckUpdateAsync()

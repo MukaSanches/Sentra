@@ -91,6 +91,43 @@ public sealed class SentraApiClient(
             cancellationToken);
 
 
+
+    public Task<ImportAdminResponse> ImportUnitsAsync(
+        Stream content,
+        string fileName,
+        CancellationToken cancellationToken = default)
+        => ImportFileAsync("api/v1/admin/import/units", content, fileName, cancellationToken);
+
+    public Task<ImportAdminResponse> ImportResidentsAsync(
+        Stream content,
+        string fileName,
+        CancellationToken cancellationToken = default)
+        => ImportFileAsync("api/v1/admin/import/residents", content, fileName, cancellationToken);
+
+    private async Task<ImportAdminResponse> ImportFileAsync(
+        string path,
+        Stream content,
+        string fileName,
+        CancellationToken cancellationToken)
+    {
+        using var message = await CreateRequestAsync(
+            HttpMethod.Post,
+            path,
+            authenticated: true,
+            cancellationToken);
+
+        using var form = new MultipartFormDataContent();
+        var streamContent = new StreamContent(content);
+        streamContent.Headers.ContentType = new MediaTypeHeaderValue(
+            Path.GetExtension(fileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase)
+                ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                : "text/csv");
+        form.Add(streamContent, "file", fileName);
+        message.Content = form;
+
+        return await SendForJsonAsync<ImportAdminResponse>(message, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<PermissionAdminResponse>> GetAdminPermissionsAsync(CancellationToken cancellationToken = default)
         => await GetAsync<List<PermissionAdminResponse>>("api/v1/admin/permissions", true, cancellationToken);
 

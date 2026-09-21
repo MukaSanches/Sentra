@@ -38,6 +38,19 @@
           <DataGrid Grid.Column="1" ItemsSource="{Binding Roles}" IsReadOnly="True"/>
         </Grid>
       </TabItem>
+      <TabItem Header="Importação">
+        <StackPanel Margin="18" MaxWidth="720" HorizontalAlignment="Left">
+          <TextBlock Text="Importar CSV / Excel" FontSize="18" FontWeight="SemiBold"/>
+          <TextBlock Text="Unidades: colunas unidade/identificador, nome e bloco opcional. Moradores: nome, telefone, unidade e vínculo opcional."
+                     TextWrapping="Wrap" Margin="0,8,0,12" Foreground="#596671"/>
+          <StackPanel Orientation="Horizontal">
+            <Button Style="{StaticResource SentraButton}" Content="Importar unidades" Click="OnImportUnitsClick"/>
+            <Button Style="{StaticResource SentraSecondaryButton}" Content="Importar moradores" Click="OnImportResidentsClick"/>
+          </StackPanel>
+          <TextBlock Text="Formatos aceitos: .csv e .xlsx. Linhas duplicadas são ignoradas; erros ficam descritos sem apagar dados existentes."
+                     TextWrapping="Wrap" Margin="0,12,0,0" Foreground="#596671"/>
+        </StackPanel>
+      </TabItem>
       <TabItem Header="Sistema">
         <StackPanel Margin="18">
           <TextBlock Text="Atualizações" FontSize="18" FontWeight="SemiBold"/>

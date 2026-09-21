@@ -22,6 +22,15 @@ public interface ISentraApiClient
 
     Task<WhatsAppConfigurationStatusResponse> GetWhatsAppConfigurationAsync(
         CancellationToken cancellationToken = default);
+    Task<ImportAdminResponse> ImportUnitsAsync(
+        Stream content,
+        string fileName,
+        CancellationToken cancellationToken = default);
+    Task<ImportAdminResponse> ImportResidentsAsync(
+        Stream content,
+        string fileName,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PermissionAdminResponse>> GetAdminPermissionsAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<RoleAdminResponse>> GetAdminRolesAsync(CancellationToken cancellationToken = default);
     Task<RoleAdminResponse> CreateAdminRoleAsync(CreateRoleAdminRequest request, CancellationToken cancellationToken = default);
