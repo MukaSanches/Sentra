@@ -19,6 +19,9 @@
       <DataTemplate DataType="{x:Type vm:OperationsViewModel}">
         <views:OperationsView/>
       </DataTemplate>
+      <DataTemplate DataType="{x:Type vm:AdministrationViewModel}">
+        <views:AdministrationView/>
+      </DataTemplate>
       <DataTemplate DataType="{x:Type vm:WhatsAppSettingsViewModel}">
         <views:WhatsAppSettingsView/>
       </DataTemplate>

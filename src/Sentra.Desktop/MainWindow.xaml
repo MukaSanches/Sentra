@@ -71,6 +71,9 @@
                     Content="Conversas"
                     Command="{Binding ShowConversationsCommand}"/>
             <Button Style="{StaticResource SentraNavButton}"
+                    Content="Administração"
+                    Command="{Binding ShowAdministrationCommand}"/>
+            <Button Style="{StaticResource SentraNavButton}"
                     Content="WhatsApp"
                     Command="{Binding ShowWhatsAppCommand}"/>
 

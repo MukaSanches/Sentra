@@ -1,4 +1,5 @@
 using System.IO;
+using Sentra.Contracts.Admin;
 using Sentra.Contracts.Auth;
 using Sentra.Contracts.Core;
 using Sentra.Contracts.Operations;
@@ -21,6 +22,12 @@ public interface ISentraApiClient
 
     Task<WhatsAppConfigurationStatusResponse> GetWhatsAppConfigurationAsync(
         CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PermissionAdminResponse>> GetAdminPermissionsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<RoleAdminResponse>> GetAdminRolesAsync(CancellationToken cancellationToken = default);
+    Task<RoleAdminResponse> CreateAdminRoleAsync(CreateRoleAdminRequest request, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<EmployeeAdminResponse>> GetAdminEmployeesAsync(CancellationToken cancellationToken = default);
+    Task<EmployeeAdminResponse> CreateAdminEmployeeAsync(CreateEmployeeAdminRequest request, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<UnitResponse>> GetUnitsAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ResidentResponse>> GetResidentsAsync(CancellationToken cancellationToken = default);
 

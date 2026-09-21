@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Sentra.Contracts.Admin;
 using Sentra.Contracts.Auth;
 using Sentra.Contracts.Core;
 using Sentra.Contracts.Operations;
@@ -89,6 +90,21 @@ public sealed class SentraApiClient(
             authenticated: true,
             cancellationToken);
 
+
+    public async Task<IReadOnlyList<PermissionAdminResponse>> GetAdminPermissionsAsync(CancellationToken cancellationToken = default)
+        => await GetAsync<List<PermissionAdminResponse>>("api/v1/admin/permissions", true, cancellationToken);
+
+    public async Task<IReadOnlyList<RoleAdminResponse>> GetAdminRolesAsync(CancellationToken cancellationToken = default)
+        => await GetAsync<List<RoleAdminResponse>>("api/v1/admin/roles", true, cancellationToken);
+
+    public Task<RoleAdminResponse> CreateAdminRoleAsync(CreateRoleAdminRequest request, CancellationToken cancellationToken = default)
+        => PostJsonAsync<CreateRoleAdminRequest, RoleAdminResponse>("api/v1/admin/roles", request, cancellationToken);
+
+    public async Task<IReadOnlyList<EmployeeAdminResponse>> GetAdminEmployeesAsync(CancellationToken cancellationToken = default)
+        => await GetAsync<List<EmployeeAdminResponse>>("api/v1/admin/employees", true, cancellationToken);
+
+    public Task<EmployeeAdminResponse> CreateAdminEmployeeAsync(CreateEmployeeAdminRequest request, CancellationToken cancellationToken = default)
+        => PostJsonAsync<CreateEmployeeAdminRequest, EmployeeAdminResponse>("api/v1/admin/employees", request, cancellationToken);
 
     public async Task<IReadOnlyList<UnitResponse>> GetUnitsAsync(CancellationToken cancellationToken = default)
         => await GetAsync<List<UnitResponse>>("api/v1/units", true, cancellationToken);

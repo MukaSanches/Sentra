@@ -32,6 +32,7 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<ConversationsViewModel>();
                 services.AddSingleton<WhatsAppSettingsViewModel>();
                 services.AddSingleton<OperationsViewModel>();
+                services.AddSingleton<AdministrationViewModel>();
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<MainWindow>();
             })
