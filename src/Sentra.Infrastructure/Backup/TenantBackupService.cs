@@ -146,7 +146,7 @@ public sealed class TenantBackupService(SentraDbContext db) : ITenantBackupServi
         }
     }
 
-    private static byte[] Encrypt(ReadOnlySpan<byte> plaintext, string passphrase)
+    internal static byte[] Encrypt(ReadOnlySpan<byte> plaintext, string passphrase)
     {
         var salt = RandomNumberGenerator.GetBytes(16);
         var nonce = RandomNumberGenerator.GetBytes(12);
@@ -176,7 +176,7 @@ public sealed class TenantBackupService(SentraDbContext db) : ITenantBackupServi
             Convert.ToBase64String(ciphertext)));
     }
 
-    private static byte[] Decrypt(ReadOnlySpan<byte> encryptedBackup, string passphrase)
+    internal static byte[] Decrypt(ReadOnlySpan<byte> encryptedBackup, string passphrase)
     {
         EncryptedBackupEnvelope envelope;
         try

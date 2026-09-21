@@ -89,3 +89,56 @@ jobs:
 
       - name: Apply migrations to clean PostgreSQL
         run: dotnet ef database update --project src/Sentra.Infrastructure/Sentra.Infrastructure.csproj --configuration Release --no-build
+
+  packaging-validation:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    needs: build-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore Sentra.sln
+
+      - name: Publish Windows client
+        run: dotnet publish src/Sentra.Desktop/Sentra.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o artifacts/app
+
+      - name: Publish backend
+        run: dotnet publish src/Sentra.Api/Sentra.Api.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o artifacts/api
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build installer
+        run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" packaging\Sentra.iss'
+
+      - name: Package backend
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/api/* -DestinationPath artifacts/SENTRA-Backend-linux-x64.zip -Force
+
+      - name: Generate SHA-256
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem artifacts/installer/*.exe, artifacts/SENTRA-Backend-linux-x64.zip
+          $lines = foreach ($file in $files) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($file.Name)"
+          }
+          $lines | Set-Content artifacts/SHA256SUMS.txt
+
+      - name: Upload packaging artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: sentra-packaging-${{ github.run_id }}
+          path: |
+            artifacts/installer/*.exe
+            artifacts/SENTRA-Backend-linux-x64.zip
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error

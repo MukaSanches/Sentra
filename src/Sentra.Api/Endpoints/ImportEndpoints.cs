@@ -243,7 +243,7 @@ public static class ImportEndpoints
         };
     }
 
-    private static async Task<List<Dictionary<string,string?>>> ReadCsvAsync(
+    internal static async Task<List<Dictionary<string,string?>>> ReadCsvAsync(
         Stream stream,
         CancellationToken ct)
     {
@@ -282,7 +282,7 @@ public static class ImportEndpoints
         return rows;
     }
 
-    private static List<Dictionary<string,string?>> ReadXlsx(Stream stream)
+    internal static List<Dictionary<string,string?>> ReadXlsx(Stream stream)
     {
         using var workbook = new XLWorkbook(stream);
         var sheet = workbook.Worksheets.FirstOrDefault()
@@ -350,7 +350,7 @@ public static class ImportEndpoints
         return result;
     }
 
-    private static string NormalizeHeader(string value)
+    internal static string NormalizeHeader(string value)
     {
         var normalized = value.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
         return new string(normalized
