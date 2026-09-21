@@ -26,6 +26,7 @@ public sealed partial class AdministrationViewModel(ISentraApiClient api, IUpdat
     [ObservableProperty] private string _employeePassword = string.Empty;
     [ObservableProperty] private UpdateCheckResult? _lastUpdateCheck;
     [ObservableProperty] private string _updateStatus = "Atualização ainda não verificada.";
+    [ObservableProperty] private string _backupPassphrase = string.Empty;
     [ObservableProperty] private string _status = "Administração pronta.";
 
     public async Task LoadAsync()
@@ -42,6 +43,48 @@ public sealed partial class AdministrationViewModel(ISentraApiClient api, IUpdat
     }
 
     [RelayCommand] private Task RefreshAsync() => LoadAsync();
+
+    public async Task ExportBackupFileAsync(string path)
+    {
+        if (BackupPassphrase.Length < 12)
+        {
+            Status = "A senha do backup precisa ter pelo menos 12 caracteres.";
+            return;
+        }
+
+        try
+        {
+            await using var stream = File.Create(path);
+            await api.ExportBackupAsync(BackupPassphrase, stream);
+            Status = "Backup criptografado salvo com sucesso.";
+        }
+        catch (Exception e)
+        {
+            try { if (File.Exists(path)) File.Delete(path); } catch { }
+            Status = DescribeError(e);
+        }
+    }
+
+    public async Task RestoreBackupFileAsync(string path)
+    {
+        if (BackupPassphrase.Length < 12)
+        {
+            Status = "A senha do backup precisa ter pelo menos 12 caracteres.";
+            return;
+        }
+
+        try
+        {
+            await using var stream = File.OpenRead(path);
+            await api.RestoreBackupAsync(BackupPassphrase, stream, Path.GetFileName(path));
+            Status = "Backup restaurado em modo merge. Nenhum dado existente foi apagado.";
+            await LoadAsync();
+        }
+        catch (Exception e)
+        {
+            Status = DescribeError(e);
+        }
+    }
 
     public Task ImportUnitsFileAsync(string path)
         => ImportFileAsync(path, units: true);

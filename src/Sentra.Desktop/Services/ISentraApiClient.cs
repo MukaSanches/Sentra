@@ -22,6 +22,16 @@ public interface ISentraApiClient
 
     Task<WhatsAppConfigurationStatusResponse> GetWhatsAppConfigurationAsync(
         CancellationToken cancellationToken = default);
+    Task ExportBackupAsync(
+        string passphrase,
+        Stream destination,
+        CancellationToken cancellationToken = default);
+    Task RestoreBackupAsync(
+        string passphrase,
+        Stream content,
+        string fileName,
+        CancellationToken cancellationToken = default);
+
     Task<ImportAdminResponse> ImportUnitsAsync(
         Stream content,
         string fileName,

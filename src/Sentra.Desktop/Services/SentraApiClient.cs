@@ -92,6 +92,51 @@ public sealed class SentraApiClient(
 
 
 
+
+    public async Task ExportBackupAsync(
+        string passphrase,
+        Stream destination,
+        CancellationToken cancellationToken = default)
+    {
+        using var message = await CreateRequestAsync(
+            HttpMethod.Get,
+            "api/v1/admin/backup",
+            authenticated: true,
+            cancellationToken);
+        message.Headers.Add("X-Sentra-Backup-Passphrase", passphrase);
+
+        using var response = await SendAsync(
+            message,
+            cancellationToken,
+            HttpCompletionOption.ResponseHeadersRead);
+        await EnsureSuccessAsync(response, cancellationToken);
+        await response.Content.CopyToAsync(destination, cancellationToken);
+    }
+
+    public async Task RestoreBackupAsync(
+        string passphrase,
+        Stream content,
+        string fileName,
+        CancellationToken cancellationToken = default)
+    {
+        using var message = await CreateRequestAsync(
+            HttpMethod.Post,
+            "api/v1/admin/backup/restore",
+            authenticated: true,
+            cancellationToken);
+        message.Headers.Add("X-Sentra-Backup-Passphrase", passphrase);
+
+        using var form = new MultipartFormDataContent();
+        var streamContent = new StreamContent(content);
+        streamContent.Headers.ContentType =
+            new MediaTypeHeaderValue("application/vnd.sentra.backup");
+        form.Add(streamContent, "file", fileName);
+        message.Content = form;
+
+        using var response = await SendAsync(message, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
     public Task<ImportAdminResponse> ImportUnitsAsync(
         Stream content,
         string fileName,

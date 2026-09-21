@@ -38,6 +38,27 @@
           <DataGrid Grid.Column="1" ItemsSource="{Binding Roles}" IsReadOnly="True"/>
         </Grid>
       </TabItem>
+      <TabItem Header="Backup">
+        <StackPanel Margin="18" MaxWidth="720" HorizontalAlignment="Left">
+          <TextBlock Text="Backup e restauração" FontSize="18" FontWeight="SemiBold"/>
+          <TextBlock Text="O arquivo é criptografado. A senha não é armazenada pelo SENTRA."
+                     Margin="0,8,0,10" TextWrapping="Wrap" Foreground="#596671"/>
+          <PasswordBox x:Name="BackupPasswordBox"
+                       Width="340"
+                       HorizontalAlignment="Left"
+                       PasswordChanged="OnBackupPasswordChanged"/>
+          <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+            <Button Style="{StaticResource SentraButton}"
+                    Content="Salvar backup"
+                    Click="OnExportBackupClick"/>
+            <Button Style="{StaticResource SentraSecondaryButton}"
+                    Content="Restaurar backup"
+                    Click="OnRestoreBackupClick"/>
+          </StackPanel>
+          <TextBlock Text="Restauração: merge seguro no mesmo condomínio. Não apaga nem sobrescreve silenciosamente registros existentes."
+                     Margin="0,12,0,0" TextWrapping="Wrap" Foreground="#596671"/>
+        </StackPanel>
+      </TabItem>
       <TabItem Header="Importação">
         <StackPanel Margin="18" MaxWidth="720" HorizontalAlignment="Left">
           <TextBlock Text="Importar CSV / Excel" FontSize="18" FontWeight="SemiBold"/>
