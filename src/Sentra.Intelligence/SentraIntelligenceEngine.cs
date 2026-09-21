@@ -165,16 +165,91 @@ public sealed partial class SentraIntelligenceEngine : IIntelligenceEngine
 
         foreach (var pattern in patterns)
         {
-            var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-            if (match.Success)
+            foreach (Match match in Regex.Matches(
+                         text,
+                         pattern,
+                         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
             {
-                var value = match.Groups[1].Value.Trim();
-                return CultureInfo.GetCultureInfo("pt-BR").TextInfo.ToTitleCase(value.ToLowerInvariant());
+                var candidate = NormalizePersonName(match.Groups[1].Value);
+                if (candidate is not null)
+                {
+                    return candidate;
+                }
+            }
+        }
+
+        var lines = text
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var line in lines)
+        {
+            var candidate = NormalizeStandaloneName(line);
+            if (candidate is not null)
+            {
+                return candidate;
             }
         }
 
         return null;
     }
+
+    private static string? NormalizeStandaloneName(string value)
+    {
+        var candidate = value.Trim().Trim('.', ',', ';', ':', '!', '?');
+        if (candidate.Length is < 2 or > 80)
+        {
+            return null;
+        }
+
+        var words = candidate.Split(
+            ' ',
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (words.Length is < 1 or > 3)
+        {
+            return null;
+        }
+
+        if (words.Any(word => !Regex.IsMatch(
+                word,
+                @"^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇ][\p{L}'-]{1,39}$",
+                RegexOptions.CultureInvariant)))
+        {
+            return null;
+        }
+
+        return NormalizePersonName(candidate);
+    }
+
+    private static string? NormalizePersonName(string value)
+    {
+        var normalized = value.Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return null;
+        }
+
+        var firstWord = normalized
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .FirstOrDefault();
+
+        if (firstWord is null || PersonNameStopWords.Contains(firstWord))
+        {
+            return null;
+        }
+
+        return CultureInfo.GetCultureInfo("pt-BR").TextInfo
+            .ToTitleCase(normalized.ToLowerInvariant());
+    }
+
+    private static readonly HashSet<string> PersonNameStopWords =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "vai", "chegar", "chega", "pode", "liberar", "autoriza", "autorizar",
+            "visita", "visitante", "carro", "placa", "hoje", "amanhã", "amanha",
+            "sim", "não", "nao", "ela", "ele", "minha", "meu", "mãe", "mae",
+            "pai", "irmão", "irmao", "irmã", "irma", "filho", "filha"
+        };
 
     private static string? ExtractPlate(string text)
     {

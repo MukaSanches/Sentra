@@ -56,3 +56,38 @@ public sealed class SentraIntelligenceEngineTests
         Assert.Null(result.ProposedActionType);
     }
 }
+
+
+public partial class SentraIntelligenceEngineTests
+{
+    [Fact]
+    public void RelationCue_DoesNotTreatVerbAsName()
+    {
+        var result = _engine.Analyze(new IntelligenceContext(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ["Minha mãe vai chegar umas 19h"],
+            new DateTimeOffset(2026, 9, 20, 18, 0, 0, TimeSpan.FromHours(-3))));
+
+        Assert.Equal("NEEDS_CLARIFICATION", result.ResolutionState);
+        Assert.Contains("visitor_name", result.MissingFields);
+        Assert.Null(result.Extracted["visitor_name"]);
+    }
+
+    [Fact]
+    public void StandaloneProperName_CompletesPreviousVisitContext()
+    {
+        var result = _engine.Analyze(new IntelligenceContext(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            ["Minha mãe vai chegar", "Maria de Souza", "ela chega 19:30"],
+            new DateTimeOffset(2026, 9, 20, 18, 0, 0, TimeSpan.FromHours(-3))));
+
+        Assert.Equal("READY_FOR_CONFIRMATION", result.ResolutionState);
+        Assert.Equal("Maria De Souza", result.Extracted["visitor_name"]);
+    }
+}
