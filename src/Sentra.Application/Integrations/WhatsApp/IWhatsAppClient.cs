@@ -104,6 +104,10 @@ public interface IWhatsAppClient
         string messageId,
         CancellationToken cancellationToken);
 
+    Task MarkMessageReadWithTypingAsync(
+        string messageId,
+        CancellationToken cancellationToken);
+
     Task<WhatsAppMediaInfo> GetMediaInfoAsync(
         string mediaId,
         CancellationToken cancellationToken);

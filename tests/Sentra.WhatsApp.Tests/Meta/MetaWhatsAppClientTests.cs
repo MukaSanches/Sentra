@@ -366,7 +366,7 @@ public sealed class MetaWhatsAppClientTests
     {
         var handler = new RecordingHandler(async request =>
         {
-            Assert.Equal(HttpMethod.Put, request.Method);
+            Assert.Equal(HttpMethod.Post, request.Method);
 
             using var body = await ReadJsonAsync(request);
             Assert.Equal("read", body.RootElement.GetProperty("status").GetString());
@@ -378,6 +378,34 @@ public sealed class MetaWhatsAppClientTests
         });
 
         await CreateClient(handler).MarkMessageReadAsync(
+            "wamid.incoming",
+            CancellationToken.None);
+    }
+
+
+    [Fact]
+    public async Task MarkReadWithTyping_UsesOfficialPostPayload()
+    {
+        var handler = new RecordingHandler(async request =>
+        {
+            Assert.Equal(HttpMethod.Post, request.Method);
+
+            using var body = await ReadJsonAsync(request);
+            Assert.Equal("read", body.RootElement.GetProperty("status").GetString());
+            Assert.Equal(
+                "wamid.incoming",
+                body.RootElement.GetProperty("message_id").GetString());
+            Assert.Equal(
+                "text",
+                body.RootElement
+                    .GetProperty("typing_indicator")
+                    .GetProperty("type")
+                    .GetString());
+
+            return Json("""{"success":true}""");
+        });
+
+        await CreateClient(handler).MarkMessageReadWithTypingAsync(
             "wamid.incoming",
             CancellationToken.None);
     }

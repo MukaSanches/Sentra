@@ -292,6 +292,8 @@ Retenção permanente independente da Meta exige Object Storage. Enquanto storag
 
 ## Confirmação de leitura
 
+O SENTRA usa `POST /{Phone-Number-ID}/messages` com `status=read`, conforme a coleção oficial atual da Meta.
+
 Somente mensagens recebidas com External Message ID podem receber read receipt.
 
 O SENTRA não tenta marcar mensagens enviadas pelo próprio sistema como lidas.
@@ -300,7 +302,7 @@ A falha do read receipt não impede o porteiro de continuar usando a conversa.
 
 ## Typing indicator
 
-A Cloud API atual suporta typing indicator associado ao read receipt.
+A Cloud API atual suporta `typing_indicator` no mesmo `POST /{Phone-Number-ID}/messages` usado pelo read receipt. O adapter possui operação específica para `status=read` + `typing_indicator.type=text`.
 
 É um aprimoramento de UX e não altera a verdade operacional da conversa.
 

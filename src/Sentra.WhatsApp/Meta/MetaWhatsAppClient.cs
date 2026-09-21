@@ -347,7 +347,7 @@ public sealed class MetaWhatsAppClient(
         var normalizedMessageId = RequireToken(messageId, nameof(messageId), 512);
 
         using var request = CreateRequest(
-            HttpMethod.Put,
+            HttpMethod.Post,
             settings,
             $"{settings.GraphVersion}/{settings.PhoneNumberId}/messages");
 
@@ -356,6 +356,33 @@ public sealed class MetaWhatsAppClient(
             messaging_product = "whatsapp",
             status = "read",
             message_id = normalizedMessageId
+        });
+
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        await response.EnsureMetaSuccessAsync(cancellationToken);
+    }
+
+    public async Task MarkMessageReadWithTypingAsync(
+        string messageId,
+        CancellationToken cancellationToken)
+    {
+        var settings = MetaWhatsAppConfiguration.From(configuration);
+        var normalizedMessageId = RequireToken(messageId, nameof(messageId), 512);
+
+        using var request = CreateRequest(
+            HttpMethod.Post,
+            settings,
+            $"{settings.GraphVersion}/{settings.PhoneNumberId}/messages");
+
+        request.Content = JsonContent.Create(new
+        {
+            messaging_product = "whatsapp",
+            status = "read",
+            message_id = normalizedMessageId,
+            typing_indicator = new
+            {
+                type = "text"
+            }
         });
 
         using var response = await httpClient.SendAsync(request, cancellationToken);
