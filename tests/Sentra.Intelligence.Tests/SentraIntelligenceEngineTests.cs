@@ -3,7 +3,7 @@ using Sentra.Intelligence;
 
 namespace Sentra.Intelligence.Tests;
 
-public sealed class SentraIntelligenceEngineTests
+public sealed partial class SentraIntelligenceEngineTests
 {
     private readonly SentraIntelligenceEngine _engine = new();
 
