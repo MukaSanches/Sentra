@@ -5,10 +5,10 @@
              xmlns:views="clr-namespace:Sentra.Desktop.Views">
   <Application.Resources>
     <ResourceDictionary>
-      <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Themes/Branding.xaml"/>
       </ResourceDictionary.MergedDictionaries>
+      <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
       <DataTemplate DataType="{x:Type vm:ConnectionViewModel}">
         <views:ConnectionView/>

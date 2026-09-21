@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Sentra.Application.Operations;
 using Sentra.Contracts.Operations;
 using Sentra.Infrastructure.Persistence;
