@@ -27,3 +27,10 @@ public sealed record CreateEmployeeAdminRequest(
     string Username,
     string Password,
     Guid RoleId);
+
+
+public sealed record ImportAdminResponse(
+    int TotalRows,
+    int Imported,
+    int Skipped,
+    IReadOnlyList<string> Errors);
