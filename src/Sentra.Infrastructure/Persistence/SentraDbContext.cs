@@ -19,6 +19,13 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<Sentra.Domain.Integrations.Integration> Integrations => Set<Sentra.Domain.Integrations.Integration>();
+    public DbSet<Sentra.Domain.Integrations.WebhookEvent> WebhookEvents => Set<Sentra.Domain.Integrations.WebhookEvent>();
+    public DbSet<Sentra.Domain.Conversations.Conversation> Conversations => Set<Sentra.Domain.Conversations.Conversation>();
+    public DbSet<Sentra.Domain.Conversations.ConversationParticipant> ConversationParticipants => Set<Sentra.Domain.Conversations.ConversationParticipant>();
+    public DbSet<Sentra.Domain.Conversations.Message> Messages => Set<Sentra.Domain.Conversations.Message>();
+    public DbSet<Sentra.Domain.Conversations.Attachment> Attachments => Set<Sentra.Domain.Conversations.Attachment>();
+    public DbSet<Sentra.Domain.Conversations.MessageStatusEvent> MessageStatusEvents => Set<Sentra.Domain.Conversations.MessageStatusEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -227,5 +234,7 @@ public sealed class SentraDbContext(DbContextOptions<SentraDbContext> options) :
                 .HasForeignKey(x => x.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.ConfigureMessagingModel();
     }
 }

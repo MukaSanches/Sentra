@@ -1,0 +1,276 @@
+using Sentra.Domain.Common;
+
+namespace Sentra.Domain.Conversations;
+
+public enum MessageDirection
+{
+    Inbound = 0,
+    Outbound = 1
+}
+
+public enum MessageContentKind
+{
+    Unknown = 0,
+    Text = 1,
+    Image = 2,
+    Audio = 3,
+    Video = 4,
+    Document = 5,
+    Location = 6,
+    Contacts = 7,
+    Interactive = 8,
+    Reaction = 9,
+    Template = 10
+}
+
+public enum MessageDeliveryStatus
+{
+    Unknown = 0,
+    Pending = 1,
+    Received = 2,
+    Accepted = 3,
+    Sent = 4,
+    Delivered = 5,
+    Read = 6,
+    Failed = 7,
+    Uncertain = 8
+}
+
+public sealed class Message : EntityBase
+{
+    private Message()
+    {
+    }
+
+    private Message(
+        Guid conversationId,
+        MessageDirection direction,
+        MessageContentKind contentKind,
+        string? text,
+        DateTimeOffset occurredAt,
+        string? externalMessageId,
+        Guid? clientRequestId,
+        MessageDeliveryStatus deliveryStatus)
+        : base(occurredAt)
+    {
+        if (conversationId == Guid.Empty)
+        {
+            throw new ArgumentException("Conversa inválida.", nameof(conversationId));
+        }
+
+        ConversationId = conversationId;
+        Direction = direction;
+        ContentKind = contentKind;
+        Text = Optional(text, 4096);
+        OccurredAt = occurredAt;
+        ExternalMessageId = Optional(externalMessageId, 256);
+        ClientRequestId = clientRequestId;
+        DeliveryStatus = deliveryStatus;
+        DeliveryStatusAt = occurredAt;
+    }
+
+    public Guid ConversationId { get; private set; }
+    public MessageDirection Direction { get; private set; }
+    public MessageContentKind ContentKind { get; private set; }
+    public string? Text { get; private set; }
+    public string? ExternalMessageId { get; private set; }
+    public Guid? ClientRequestId { get; private set; }
+    public DateTimeOffset OccurredAt { get; private set; }
+    public MessageDeliveryStatus DeliveryStatus { get; private set; }
+    public DateTimeOffset DeliveryStatusAt { get; private set; }
+    public string? LastErrorCode { get; private set; }
+
+    public static Message CreateInbound(
+        Guid conversationId,
+        string externalMessageId,
+        MessageContentKind kind,
+        string? text,
+        DateTimeOffset occurredAt)
+        => new(
+            conversationId,
+            MessageDirection.Inbound,
+            kind,
+            text,
+            occurredAt,
+            externalMessageId,
+            null,
+            MessageDeliveryStatus.Received);
+
+    public static Message CreateOutboundPending(
+        Guid conversationId,
+        Guid clientRequestId,
+        string text,
+        DateTimeOffset occurredAt)
+        => CreateOutboundPending(
+            conversationId,
+            clientRequestId,
+            MessageContentKind.Text,
+            text,
+            occurredAt);
+
+    public static Message CreateOutboundPending(
+        Guid conversationId,
+        Guid clientRequestId,
+        MessageContentKind contentKind,
+        string summary,
+        DateTimeOffset occurredAt)
+    {
+        if (clientRequestId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Idempotency key inválida.",
+                nameof(clientRequestId));
+        }
+
+        if (contentKind is MessageContentKind.Unknown or MessageContentKind.Reaction)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(contentKind),
+                "Tipo de conteúdo não é válido para envio iniciado pelo SENTRA.");
+        }
+
+        if (string.IsNullOrWhiteSpace(summary))
+        {
+            throw new ArgumentException(
+                "Resumo da mensagem não pode ser vazio.",
+                nameof(summary));
+        }
+
+        return new(
+            conversationId,
+            MessageDirection.Outbound,
+            contentKind,
+            summary,
+            occurredAt,
+            null,
+            clientRequestId,
+            MessageDeliveryStatus.Pending);
+    }
+
+    public void MarkAccepted(
+        string externalMessageId,
+        DateTimeOffset timestamp)
+    {
+        if (!CanTransition(DeliveryStatus, MessageDeliveryStatus.Accepted))
+        {
+            return;
+        }
+
+        ExternalMessageId = Required(
+            externalMessageId,
+            nameof(externalMessageId),
+            256);
+        DeliveryStatus = MessageDeliveryStatus.Accepted;
+        DeliveryStatusAt = timestamp;
+        LastErrorCode = null;
+        MarkUpdated(timestamp);
+    }
+
+    public bool ApplyDeliveryStatus(
+        MessageDeliveryStatus status,
+        DateTimeOffset statusTimestamp,
+        string? errorCode = null)
+    {
+        if (status == MessageDeliveryStatus.Unknown ||
+            !CanTransition(DeliveryStatus, status))
+        {
+            return false;
+        }
+
+        DeliveryStatus = status;
+        DeliveryStatusAt = statusTimestamp;
+        LastErrorCode = Optional(errorCode, 96);
+        MarkUpdated(statusTimestamp > UpdatedAt ? statusTimestamp : UpdatedAt);
+        return true;
+    }
+
+    public void MarkSendFailure(
+        string errorCode,
+        DateTimeOffset timestamp)
+    {
+        if (!CanTransition(DeliveryStatus, MessageDeliveryStatus.Failed))
+        {
+            return;
+        }
+
+        DeliveryStatus = MessageDeliveryStatus.Failed;
+        DeliveryStatusAt = timestamp;
+        LastErrorCode = Required(errorCode, nameof(errorCode), 96);
+        MarkUpdated(timestamp);
+    }
+
+    public void MarkSendUncertain(
+        string errorCode,
+        DateTimeOffset timestamp)
+    {
+        if (!CanTransition(DeliveryStatus, MessageDeliveryStatus.Uncertain))
+        {
+            return;
+        }
+
+        DeliveryStatus = MessageDeliveryStatus.Uncertain;
+        DeliveryStatusAt = timestamp;
+        LastErrorCode = Required(errorCode, nameof(errorCode), 96);
+        MarkUpdated(timestamp);
+    }
+
+    private static bool CanTransition(
+        MessageDeliveryStatus current,
+        MessageDeliveryStatus next)
+        => current switch
+        {
+            MessageDeliveryStatus.Unknown => next != MessageDeliveryStatus.Unknown,
+            MessageDeliveryStatus.Pending => next is
+                MessageDeliveryStatus.Accepted
+                or MessageDeliveryStatus.Sent
+                or MessageDeliveryStatus.Delivered
+                or MessageDeliveryStatus.Read
+                or MessageDeliveryStatus.Failed
+                or MessageDeliveryStatus.Uncertain,
+            MessageDeliveryStatus.Accepted => next is
+                MessageDeliveryStatus.Sent
+                or MessageDeliveryStatus.Delivered
+                or MessageDeliveryStatus.Read
+                or MessageDeliveryStatus.Failed,
+            MessageDeliveryStatus.Sent => next is
+                MessageDeliveryStatus.Delivered
+                or MessageDeliveryStatus.Read
+                or MessageDeliveryStatus.Failed,
+            MessageDeliveryStatus.Delivered => next == MessageDeliveryStatus.Read,
+            MessageDeliveryStatus.Uncertain => next is
+                MessageDeliveryStatus.Sent
+                or MessageDeliveryStatus.Delivered
+                or MessageDeliveryStatus.Read
+                or MessageDeliveryStatus.Failed,
+            MessageDeliveryStatus.Read => false,
+            MessageDeliveryStatus.Failed => false,
+            MessageDeliveryStatus.Received => false,
+            _ => false
+        };
+
+    private static string Required(string value, string name, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException("O valor é obrigatório.", name);
+        }
+
+        var normalized = value.Trim();
+        return normalized.Length <= maxLength
+            ? normalized
+            : throw new ArgumentOutOfRangeException(name);
+    }
+
+    private static string? Optional(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var normalized = value.Trim();
+        return normalized.Length <= maxLength
+            ? normalized
+            : throw new ArgumentOutOfRangeException(nameof(value));
+    }
+}

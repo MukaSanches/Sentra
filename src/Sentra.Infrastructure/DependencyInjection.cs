@@ -22,6 +22,7 @@ public static class DependencyInjection
                 options.UseNpgsql(
                     postgres,
                     npgsql => npgsql.MigrationsAssembly(typeof(SentraDbContext).Assembly.FullName)));
+            services.AddHostedService<PermissionCatalogSynchronizer>();
         }
 
         services.AddSingleton<IPasswordHashService, AspNetPasswordHashService>();
