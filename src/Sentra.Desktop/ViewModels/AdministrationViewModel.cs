@@ -64,10 +64,10 @@ public sealed partial class AdministrationViewModel(ISentraApiClient api, IUpdat
             return;
         }
 
-        var codes = RolePermissionCodes.Split(
-            [',',';','|','\r','
-'],
-            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var codes = RolePermissionCodes
+            .Split(new[] { ',', ';', '|', '\r', '\n' },
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 
         try
         {
